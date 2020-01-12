@@ -1,15 +1,15 @@
 import React from 'react'
 import { NextPage } from 'next'
 import { Paper } from '@material-ui/core'
-import BasicLayout from '~/layouts/BasicLayout'
+import DefaultLayout from '~/layouts/DefaultLayout'
 
 const IndexPage: NextPage = () => {
     return (
-        <BasicLayout>
+        <DefaultLayout>
             <Paper variant="outlined">
                 <h1>Hello Next.js 👋</h1>
             </Paper>
-        </BasicLayout>
+        </DefaultLayout>
     )
 }
 
