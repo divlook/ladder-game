@@ -25,3 +25,6 @@ yarn-error.log*
 
 # History
 .history
+
+# NextJs 개발용 build 폴더
+.next

@@ -1,6 +1,9 @@
 const path = require('path')
+const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
+    distDir: isProd ? 'build' : '.next',
+
     /**
      * @see https://nextjs.org/docs/api-reference/next.config.js/custom-webpack-config
      */
