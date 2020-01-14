@@ -1,6 +1,6 @@
 import React from 'react'
 import { NextPage } from 'next'
-import { Paper } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 import DefaultLayout from '~/layouts/DefaultLayout'
 
 /*
@@ -16,9 +16,9 @@ import DefaultLayout from '~/layouts/DefaultLayout'
 const IndexPage: NextPage = () => {
     return (
         <DefaultLayout>
-            <Paper variant="outlined">
-                <h1>Hello Next.js 👋</h1>
-            </Paper>
+            <Typography component="h1" variant="h4" align="center">
+                Hello Next.js 👋
+            </Typography>
         </DefaultLayout>
     )
 }
