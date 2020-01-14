@@ -78,7 +78,7 @@ const Layout: React.FC<Props> = ({ children, title = 'Ladder Game', width = 720 
                 <Typography variant="body2" color="textSecondary" align="center">
                     {'Copyright © '}
                     <Link color="inherit" href="https://github.com/divlook/">
-                        {title}
+                        divlook
                     </Link>{' '}
                     {new Date().getFullYear()}
                     {'.'}
