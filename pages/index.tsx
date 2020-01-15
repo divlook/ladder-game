@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useReducer } from 'react'
 import { NextPage } from 'next'
 import Typography from '@material-ui/core/Typography'
 import Stepper from '@material-ui/core/Stepper'
@@ -10,6 +10,8 @@ import Button from '@material-ui/core/Button'
 import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
 import { makeStyles } from '@material-ui/core'
+import IndexReducer, { initialState } from '~/reducers/index.reducer'
+import * as IndexAction from '~/reducers/index.action'
 
 /*
 사다리 수를 입력 받는다
@@ -41,9 +43,8 @@ const IndexPage: NextPage = () => {
     const classes = useStyles()
     const [activeStep, setActiveStep] = useState(0)
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
-
-    const [value, setValue] = useState()
-    const isValid = value > 0 && value <= 4
+    // const [store, dispatch] = useReducer(IndexReducer, initialState)
+    const [store, dispatch] = useState(initialState)
 
     const handleNext = () => {
         setActiveStep(prevActiveStep => prevActiveStep + 1)
@@ -55,6 +56,14 @@ const IndexPage: NextPage = () => {
 
     const handleReset = () => {
         setActiveStep(0)
+    }
+
+    const changeLadderQty = (e: React.ChangeEvent) => {
+        // dispatch(IndexAction.changeLadderQty(Number(e?.target?.nodeValue)))
+        dispatch({
+            ...store,
+            ladderQty: Number(e?.target?.nodeValue),
+        })
     }
 
     return (
@@ -69,11 +78,11 @@ const IndexPage: NextPage = () => {
                         <StepLabel>몇 개의 사다리가 필요하신가요?</StepLabel>
                         <StepContent>
                             <TextField
-                                label={isValid ? '' : '1~4까지 입력해주세요.'}
-                                type="tel"
-                                error={!isValid}
-                                value={value}
-                                onChange={e => setValue(e?.target?.value)}
+                                label="1~4까지 입력해주세요."
+                                type="number"
+                                error={store.ladderQty <= 0 || store.ladderQty > 4}
+                                value={store.ladderQty}
+                                onChange={changeLadderQty}
                             />
                             <div className={classes.actionsContainer}>
                                 <div>
