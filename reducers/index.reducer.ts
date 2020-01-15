@@ -1,25 +1,12 @@
 import * as types from '~/reducers/index.type'
 
-interface Action<P = Payload> {
-    type: string
-    payload?: P
-}
-
-interface Payload {
-    [key: string]: any
-}
-
-export const initialState: {
-    ladderQty: number
-    players: any[]
-    goals: string[]
-} = {
+export const initialState: types.InitialState = {
     ladderQty: 0,
     players: [],
     goals: [],
 }
 
-export default (state: typeof initialState, action: Action) => {
+export default (state: types.InitialState, action: types.Action) => {
     switch (action.type) {
         case types.CHANGE_GOAL: {
             return {
@@ -30,6 +17,7 @@ export default (state: typeof initialState, action: Action) => {
         case types.CHANGE_LADDER_QTY: {
             return {
                 ...state,
+                ladderQty: action.payload.qty,
             }
         }
 
