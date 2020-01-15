@@ -43,7 +43,7 @@ const IndexPage: NextPage = () => {
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
 
     const [value, setValue] = useState()
-    let isValid = value > 0 && value <= 4
+    const isValid = value > 0 && value <= 4
 
     const handleNext = () => {
         setActiveStep(prevActiveStep => prevActiveStep + 1)
