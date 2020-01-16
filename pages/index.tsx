@@ -9,6 +9,7 @@ import DefaultLayout from '~/layouts/DefaultLayout'
 import Button from '@material-ui/core/Button'
 import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
+import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core'
 import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
@@ -159,8 +160,8 @@ const IndexPage: NextPage = () => {
                                         }
                                     })()}
 
-                                    <div className={classes.actionsContainer}>
-                                        <div>
+                                    <Box className={classes.actionsContainer}>
+                                        <Box>
                                             <Button disabled={currentStep === 0} onClick={handleBack} className={classes.button}>
                                                 Back
                                             </Button>
@@ -173,8 +174,8 @@ const IndexPage: NextPage = () => {
                                             >
                                                 Next
                                             </Button>
-                                        </div>
-                                    </div>
+                                        </Box>
+                                    </Box>
                                 </StepContent>
                             </Step>
                         )
@@ -184,13 +185,15 @@ const IndexPage: NextPage = () => {
 
             {activeStep === steps.length && (
                 <Paper square elevation={0} className={classes.resetContainer}>
-                    <Typography>All steps completed - you&apos;re finished</Typography>
-                    <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
-                        Back
-                    </Button>
-                    <Button onClick={handleReset} className={classes.button}>
-                        Reset
-                    </Button>
+                    <Typography>사다리가 그려지는 중 입니다. 기다려주세요.</Typography>
+                    <Box>
+                        <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
+                            Back
+                        </Button>
+                        <Button onClick={handleReset} className={classes.button}>
+                            Reset
+                        </Button>
+                    </Box>
                 </Paper>
             )}
         </DefaultLayout>
