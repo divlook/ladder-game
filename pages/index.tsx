@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from 'react'
+import React, { useState, useReducer, useEffect, useRef } from 'react'
 import { NextPage } from 'next'
 import Typography from '@material-ui/core/Typography'
 import Stepper from '@material-ui/core/Stepper'
@@ -27,9 +27,18 @@ export const useStyles = makeStyles(theme => ({
     root: {
         width: '100%',
     },
+    textField: {
+        marginRight: theme.spacing(1),
+        '&:last-child': {
+            marginRight: theme.spacing(0),
+        },
+    },
     button: {
         marginTop: theme.spacing(1),
         marginRight: theme.spacing(1),
+        '&:last-child': {
+            marginRight: theme.spacing(0),
+        },
     },
     actionsContainer: {
         marginBottom: theme.spacing(2),
@@ -43,8 +52,12 @@ const IndexPage: NextPage = () => {
     const classes = useStyles()
     const [activeStep, setActiveStep] = useState(0)
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
-    // const [store, dispatch] = useReducer(IndexReducer, initialState)
-    const [store, dispatch] = useState(initialState)
+    const [store, dispatch] = useReducer(IndexReducer, initialState)
+    const formRef = useRef<HTMLFormElement>(null)
+
+    const handleSubmit = e => {
+        e.preventDefault()
+    }
 
     const handleNext = () => {
         setActiveStep(prevActiveStep => prevActiveStep + 1)
@@ -56,15 +69,25 @@ const IndexPage: NextPage = () => {
 
     const handleReset = () => {
         setActiveStep(0)
+        dispatch(IndexAction.resetAll())
+        formRef.current?.reset()
     }
 
-    const changeLadderQty = (e: React.ChangeEvent) => {
-        // dispatch(IndexAction.changeLadderQty(Number(e?.target?.nodeValue)))
-        dispatch({
-            ...store,
-            ladderQty: Number(e?.target?.nodeValue),
-        })
+    const changeLadderQty = e => {
+        dispatch(IndexAction.changeLadderQty(Number(e?.target?.value)))
     }
+
+    const changeName = index => e => {
+        dispatch(IndexAction.changeName(index, e?.target?.value))
+    }
+
+    const changeReward = index => e => {
+        dispatch(IndexAction.changeReward(index, e?.target?.value))
+    }
+
+    useEffect(() => {
+        console.log(store)
+    }, [store])
 
     return (
         <DefaultLayout>
@@ -72,30 +95,121 @@ const IndexPage: NextPage = () => {
                 👋 안녕하세요!
             </Typography>
 
-            <form className={classes.root} noValidate autoComplete="off">
+            <form ref={formRef} className={classes.root} noValidate autoComplete="off" onSubmit={handleSubmit}>
                 <Stepper activeStep={activeStep} orientation="vertical">
-                    <Step>
-                        <StepLabel>몇 개의 사다리가 필요하신가요?</StepLabel>
-                        <StepContent>
-                            <TextField
-                                label="1~4까지 입력해주세요."
-                                type="number"
-                                error={store.ladderQty <= 0 || store.ladderQty > 4}
-                                value={store.ladderQty}
-                                onChange={changeLadderQty}
-                            />
-                            <div className={classes.actionsContainer}>
-                                <div>
-                                    <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
-                                        Back
-                                    </Button>
-                                    <Button variant="contained" color="primary" onClick={handleNext} className={classes.button}>
-                                        {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                                    </Button>
-                                </div>
-                            </div>
-                        </StepContent>
-                    </Step>
+                    {steps.map((label, currentStep) => {
+                        switch (currentStep) {
+                            case 0: {
+                                const isError = !store.ladderQty || store.ladderQty <= 0 || store.ladderQty > 4
+                                return (
+                                    <Step key={label}>
+                                        <StepLabel>{label}</StepLabel>
+                                        <StepContent>
+                                            <TextField
+                                                className={classes.textField}
+                                                label="1~4까지 입력해주세요."
+                                                type="tel"
+                                                error={isError}
+                                                onChange={changeLadderQty}
+                                                defaultValue={(!isError && store.ladderQty) || null}
+                                            />
+                                            <div className={classes.actionsContainer}>
+                                                <div>
+                                                    <Button disabled onClick={handleBack} className={classes.button}>
+                                                        Back
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleNext}
+                                                        className={classes.button}
+                                                        disabled={isError}
+                                                    >
+                                                        Next
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </StepContent>
+                                    </Step>
+                                )
+                            }
+
+                            case 1: {
+                                return (
+                                    <Step key={label}>
+                                        <StepLabel>{label}</StepLabel>
+                                        <StepContent>
+                                            {Array.from({ length: store.ladderQty }).map((row, key) => {
+                                                return (
+                                                    <TextField
+                                                        key={key}
+                                                        className={classes.textField}
+                                                        onChange={changeName(key)}
+                                                        defaultValue={store.players[key]}
+                                                    />
+                                                )
+                                            })}
+
+                                            <div className={classes.actionsContainer}>
+                                                <div>
+                                                    <Button onClick={handleBack} className={classes.button}>
+                                                        Back
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleNext}
+                                                        className={classes.button}
+                                                    >
+                                                        Next
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </StepContent>
+                                    </Step>
+                                )
+                            }
+
+                            case 2: {
+                                return (
+                                    <Step key={label}>
+                                        <StepLabel>{label}</StepLabel>
+                                        <StepContent>
+                                            {Array.from({ length: store.ladderQty }).map((row, key) => {
+                                                return (
+                                                    <TextField
+                                                        key={key}
+                                                        className={classes.textField}
+                                                        onChange={changeReward(key)}
+                                                        defaultValue={store.rewards[key]}
+                                                    />
+                                                )
+                                            })}
+
+                                            <div className={classes.actionsContainer}>
+                                                <div>
+                                                    <Button onClick={handleBack} className={classes.button}>
+                                                        Back
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleNext}
+                                                        className={classes.button}
+                                                    >
+                                                        Next
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </StepContent>
+                                    </Step>
+                                )
+                            }
+
+                            default:
+                                return null
+                        }
+                    })}
                 </Stepper>
             </form>
 

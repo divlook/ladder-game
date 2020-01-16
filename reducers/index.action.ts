@@ -1,9 +1,12 @@
 import * as types from '~/reducers/index.type'
 
-export const changeGoal = () => {
+export const changeReward = (index: number, rewardName: types.rewardName) => {
     return {
-        type: types.CHANGE_GOAL,
-        payload: {},
+        type: types.CHANGE_REWARD,
+        payload: {
+            index,
+            rewardName,
+        },
     }
 }
 
@@ -16,9 +19,19 @@ export const changeLadderQty = (ladderQty: types.ladderQty) => {
     }
 }
 
-export const changeName = () => {
+export const changeName = (index: number, playerName: types.playerName) => {
     return {
         type: types.CHANGE_NAME,
+        payload: {
+            index,
+            playerName,
+        },
+    }
+}
+
+export const resetAll = () => {
+    return {
+        type: types.RESET_ALL,
         payload: {},
     }
 }
