@@ -108,12 +108,11 @@ const IndexPage: NextPage = () => {
                                     {(() => {
                                         switch (currentStep) {
                                             case 0: {
-                                                isError = !store.ladderQty || store.ladderQty <= 0 || store.ladderQty > 4
+                                                isError = !store.ladderQty || store.ladderQty <= 1 || store.ladderQty > 20
                                                 return (
                                                     <TextField
                                                         className={classes.textField}
-                                                        label="1~4까지 입력해주세요."
-                                                        type="tel"
+                                                        label={isError ? '숫자 2이상 20이하' : ''}
                                                         error={isError}
                                                         onChange={changeLadderQty}
                                                         defaultValue={(!isError && store.ladderQty) || null}
