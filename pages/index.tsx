@@ -13,6 +13,7 @@ import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core'
 import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
+import LadderGame from '~/components/LadderGame'
 
 /*
 사다리 수를 입력 받는다
@@ -51,9 +52,16 @@ export const useStyles = makeStyles(theme => ({
 
 const IndexPage: NextPage = () => {
     const classes = useStyles()
-    const [activeStep, setActiveStep] = useState(0)
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
-    const [store, dispatch] = useReducer(IndexReducer, initialState)
+    // TODO: Sample
+    const [activeStep, setActiveStep] = useState(0 || steps.length)
+    const [store, dispatch] = useReducer(IndexReducer, {
+        ...initialState,
+        // TODO: Sample
+        ladderQty: 4,
+        players: ['미유', '로빈', '에반', '차드'],
+        rewards: ['당첨', '꽝', '꽝', '꽝'],
+    })
     const formRef = useRef<HTMLFormElement>(null)
 
     const handleSubmit = e => {
@@ -184,7 +192,9 @@ const IndexPage: NextPage = () => {
 
             {activeStep === steps.length && (
                 <Paper square elevation={0} className={classes.resetContainer}>
-                    <Typography>사다리가 그려지는 중 입니다. 기다려주세요.</Typography>
+                    <Box>
+                        <LadderGame {...store} />
+                    </Box>
                     <Box>
                         <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
                             Back
