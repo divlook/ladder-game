@@ -1,32 +1,85 @@
 import { useState, useEffect } from 'react'
 
-const prevLifecycle = {
-    created: false,
-    mounted: false,
-    beforeUpdate: false,
+// TODO:
+// activated
+// deactivated
+
+interface Options {
+    created?: (cb) => void
+    mounted?: (cb) => void
+    updated?: (cb) => void
 }
 
-export const useLifecycle = () => {
-    const callbacks = {
-        created: () => void 0,
-        mounted: () => void 0,
-        updated: () => void 0,
+enum HookNames {
+    created = 'useCreated',
+    mounted = 'useMounted',
+    updated = 'useUpdated',
+}
+
+const initialState = {
+    created: false,
+    mounted: false,
+    updated: false,
+}
+
+const prevState = {
+    ...initialState,
+}
+
+// init에서 변형됨
+const callbacks = {
+    created: [],
+    mounted: [],
+    updated: [],
+}
+
+// init에서 변형됨
+const hooks = {
+    useCreated: (cb?: any) => void cb,
+    useMounted: (cb?: any) => void cb,
+    useUpdated: (cb?: any) => void cb,
+}
+
+// init에서 변형됨
+const run = {
+    created: (cb?: any) => void cb,
+    mounted: (cb?: any) => void cb,
+    updated: (cb?: any) => void cb,
+}
+
+const init = (opt) => {
+    const hasArg = opt && typeof opt === 'object'
+
+    for (const lifecycleName in HookNames) {
+        const hookName = HookNames[lifecycleName]
+
+        // callback 초기화
+        callbacks[lifecycleName] = []
+
+        // 인수가 있으면 callback에 추가
+        if (hasArg && typeof opt[lifecycleName] === 'function') {
+            callbacks[lifecycleName]?.push?.(opt[lifecycleName])
+        }
+
+        // hook을 부를때마다 callback에 추가됨
+        hooks[hookName] = cb => void(callbacks[lifecycleName]?.push?.(cb))
+
+        // callback 실행시키는 함수
+        run[lifecycleName] = () => callbacks[lifecycleName]?.forEach?.(cb => cb?.())
     }
-    const useCreated = cb => (callbacks.created = cb)
-    const useMounted = cb => (callbacks.mounted = cb)
-    const useUpdated = cb => (callbacks.updated = cb)
-    const [lifecycle, setLifecycle] = useState({
-        created: false,
-        mounted: false,
-        beforeUpdate: false,
-    })
+}
+
+export const useLifecycle = (opt?: Options) => {
+    init(opt)
+
+    const [state, setState] = useState(initialState)
 
     /**
      * beforeCreate
      */
-    if (!lifecycle.created) {
-        setLifecycle({
-            ...lifecycle,
+    if (!state.created) {
+        setState({
+            ...state,
             created: true,
         })
     }
@@ -35,56 +88,54 @@ export const useLifecycle = () => {
      * created
      */
     useEffect(() => {
-        if (lifecycle.created) {
-            callbacks.created?.()
-            if (!lifecycle.mounted) {
-                setLifecycle({
-                    ...lifecycle,
+        if (state.created) {
+            run.created?.()
+            if (!state.mounted) {
+                setState({
+                    ...state,
                     mounted: true,
                 })
             }
         }
 
-        prevLifecycle.created = lifecycle.created
-    }, [lifecycle.created])
+        prevState.created = state.created
+    }, [state.created])
 
     /**
      * mounted
      */
     useEffect(() => {
-        if (lifecycle.mounted) {
-            callbacks.mounted?.()
-            if (!lifecycle.beforeUpdate) {
-                setLifecycle({
-                    ...lifecycle,
-                    beforeUpdate: true,
+        if (state.mounted) {
+            run.mounted?.()
+            if (!state.updated) {
+                setState({
+                    ...state,
+                    updated: true,
                 })
             }
         }
 
-        prevLifecycle.mounted = lifecycle.mounted
-    }, [lifecycle.mounted])
+        prevState.mounted = state.mounted
+    }, [state.mounted])
 
     /**
      * updated
      */
     useEffect(() => {
-        const { created, mounted, beforeUpdate } = lifecycle
+        const { created, mounted, updated } = state
 
-        if (created && mounted && beforeUpdate) {
-            if (prevLifecycle.beforeUpdate) {
-                callbacks.updated?.()
+        if (created && mounted && updated) {
+            if (prevState.updated) {
+                run.updated?.()
             }
 
-            prevLifecycle.beforeUpdate = true
+            prevState.updated = true
         }
     })
 
     return {
-        ...lifecycle,
-        useCreated,
-        useMounted,
-        useUpdated,
+        ...state,
+        ...hooks,
     }
 }
 
