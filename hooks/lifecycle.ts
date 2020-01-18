@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react'
 // activated
 // deactivated
 
+enum Color {
+    PersianGreen = '#009688',
+}
+
 interface Options {
     created?: (cb) => void
     mounted?: (cb) => void
     updated?: (cb) => void
+    useLog?: boolean
+    logLabel?: string
 }
 
 enum HookNames {
@@ -89,7 +95,9 @@ export const useLifecycle = (opt?: Options) => {
      */
     useEffect(() => {
         if (state.created) {
+            opt?.useLog && console.group(`%c: Created`, `color: ${Color.PersianGreen}`, opt?.logLabel || '')
             run.created?.()
+            opt?.useLog && console.groupEnd()
             if (!state.mounted) {
                 setState({
                     ...state,
@@ -106,7 +114,9 @@ export const useLifecycle = (opt?: Options) => {
      */
     useEffect(() => {
         if (state.mounted) {
+            opt?.useLog && console.group(`%c: Mounted`, `color: ${Color.PersianGreen}`, opt?.logLabel || '')
             run.mounted?.()
+            opt?.useLog && console.groupEnd()
             if (!state.updated) {
                 setState({
                     ...state,
@@ -126,7 +136,9 @@ export const useLifecycle = (opt?: Options) => {
 
         if (created && mounted && updated) {
             if (prevState.updated) {
+                opt?.useLog && console.group(`%c: Updated`, `color: ${Color.PersianGreen}`, opt?.logLabel || '')
                 run.updated?.()
+                opt?.useLog && console.groupEnd()
             }
 
             prevState.updated = true
