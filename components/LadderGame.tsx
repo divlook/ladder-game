@@ -29,7 +29,7 @@ const useStyles = (state: State) =>
             minHeight: state.mapHeight,
         },
         ladders: {
-            width: state.mapWidth,
+            minWidth: state.mapWidth,
             minHeight: state.mapHeight,
         },
         ladderItem: {
