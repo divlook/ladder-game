@@ -37,6 +37,7 @@ export interface MapData {
 
 export interface MidLine {
     uid: number
+    el: HTMLDivElement | null
     blocks: MapData[]
     style: any
 }
@@ -278,6 +279,7 @@ const LadderGame: React.FC<InitialState> = props => {
                 if (leftPoint?.el !== null && rightPoint?.el !== null) {
                     const midLine: MidLine = {
                         uid: ++__uid,
+                        el: null,
                         blocks: [],
                         style: {
                             display: 'block',
@@ -356,8 +358,8 @@ const LadderGame: React.FC<InitialState> = props => {
 
             setState({ ...state })
         },
-        bindMapItem: (x, y) => el => {
-            state.mapData[x][y].el = el
+        bindEl: data => el => {
+            data.el = el
         },
         createMapData(x, y): MapData {
             return {
@@ -405,7 +407,7 @@ const LadderGame: React.FC<InitialState> = props => {
                                                     return (
                                                         <div
                                                             key={yIndex}
-                                                            ref={methods.bindMapItem(xIndex, yIndex)}
+                                                            ref={methods.bindEl(yVal)}
                                                             className={clsx(classes.ladderItemBlock, {
                                                                 [classes.ladderItemHandle]: yVal.isHandle,
                                                                 active: state.generatingMidLinePoint === yVal,
@@ -426,6 +428,7 @@ const LadderGame: React.FC<InitialState> = props => {
                                     return (
                                         <div
                                             key={midLineIndex}
+                                            ref={methods.bindEl(midLine)}
                                             className={classes.ladderMidLine}
                                             style={midLine.style}
                                             onClick={methods.cutMidLine(midLine)}
