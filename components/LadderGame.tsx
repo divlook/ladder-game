@@ -18,17 +18,19 @@ midLine을 취소할 수 있으며, 취소하면 원상복귀시켜야 됨.
 보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
 resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
 
+TODO: 다음 작업할 것 = 라인 이동
 */
 
 export interface MapData {
     uid: number
     el: HTMLDivElement | null
+    x: number
+    y: number
     isHandle: boolean
     isLinked: boolean
-    prevLadder: MapData | null
-    nextLadder: MapData | null
-    prevStep: MapData | null
-    nextStep: MapData | null
+    prevBlock: MapData | null
+    nextBlock: MapData | null
+    linkedBlock: MapData | null
 }
 
 export interface State {
@@ -38,6 +40,8 @@ export interface State {
     mapWidth: number
     mapHeight: number
     ladderBlockCnt: number
+    midLineData: Map<MapData[], any>
+    generatingMidLinePoint?: MapData | null
 }
 
 export const defaultOption = {
@@ -51,6 +55,8 @@ export const initialState: State = {
     mapWidth: 0,
     mapHeight: defaultOption.mapMinHeight,
     ladderBlockCnt: 21,
+    midLineData: new Map([]),
+    generatingMidLinePoint: null,
 }
 
 const useStyles = (state: State) =>
@@ -99,10 +105,26 @@ const useStyles = (state: State) =>
             height: 12,
             borderRadius: 2,
             backgroundColor: '#795548',
-            '&:hover, &.active': {
+            '&:hover:not(.linked), &.active': {
                 zIndex: 1,
                 boxShadow: '0 0 8px 4px rgba(255, 255, 255, 0.4), 0 0 12px 12px rgb(158, 118, 98, 0.6)',
             },
+            '&.linked': {
+                cursor: 'no-drop',
+            },
+        },
+        ladderMidLine: {
+            display: 'none',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            zIndex: 2,
+            backgroundColor: '#795548',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            boxShadow: '0 2px 4px 2px rgba(0, 0, 0, 0.2)',
+            cursor: 'pointer',
         },
         // cursorGrap: {
         //     cursor: 'grab',
@@ -164,14 +186,12 @@ const LadderGame: React.FC<InitialState> = props => {
                 for (let x = 0; x < ladderQty; x++) {
                     mapData[x] = []
                     for (let y = 0; y < state.ladderBlockCnt; y++) {
-                        mapData[x][y] = methods.createMapData()
+                        mapData[x][y] = methods.createMapData(x, y)
 
                         if (y > 0) {
                             const prev = mapData[x][y - 1]
-                            prev.nextLadder = mapData[x][y]
-                            prev.nextStep = mapData[x][y]
-                            mapData[x][y].prevLadder = prev
-                            mapData[x][y].prevStep = prev
+                            prev.nextBlock = mapData[x][y]
+                            mapData[x][y].prevBlock = prev
                         }
 
                         if (y > 0 && y < state.ladderBlockCnt - 1) {
@@ -191,27 +211,149 @@ const LadderGame: React.FC<InitialState> = props => {
                 }, 1000)
             })
         },
-        handleClick: (x, y) => e => {
+        connectMidLine: (x: number, y: number) => e => {
             e.persist()
             console.group('item')
-            console.log('x', x)
-            console.log('y', y)
+            console.log('x', x, 'y', y)
             console.log(state.mapData[x][y])
             console.groupEnd()
+
+            // handle만 조작 가능하다
+            if (!state.mapData[x][y].isHandle) return
+
+            // 이미 연결된건 조작 불가능하다
+            if (state.mapData[x][y].isLinked) return
+
+            // 같은 block을 클릭하면 취소된다
+            if (state.mapData[x][y] === state.generatingMidLinePoint) {
+                setState({
+                    ...state,
+                    generatingMidLinePoint: null,
+                })
+                return
+            }
+
+            // 같은 라인의 block을 클릭하면 취소된다
+            if (x === state.generatingMidLinePoint?.x) {
+                setState({
+                    ...state,
+                    generatingMidLinePoint: null,
+                })
+                return
+            }
+
+            // midLine 시작점을 저장한다
+            if (!state.generatingMidLinePoint) {
+                setState({
+                    ...state,
+                    generatingMidLinePoint: state.mapData[x][y],
+                })
+                return
+            }
+
+            // midLine을 그린다
+            if (state.generatingMidLinePoint) {
+                const defaultMidLineOption = {
+                    width: 8,
+                }
+                const midLineStyle = {
+                    display: 'none',
+                    top: 0,
+                    left: 0,
+                    width: defaultMidLineOption.width,
+                    height: defaultMidLineOption.width,
+                    transform: 'rotate(0deg)',
+                }
+
+                const startPoint = state.generatingMidLinePoint
+                const endPoint = state.mapData[x][y]
+
+                const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
+                const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
+                const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
+
+                const leftPoint = toTheRight ? startPoint : endPoint
+                const rightPoint = toTheRight ? endPoint : startPoint
+
+                if (leftPoint?.el !== null && rightPoint?.el !== null) {
+                    midLineStyle.display = 'block'
+
+                    if (toTheSameTop) {
+                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                        const addLine = leftPoint.el.offsetWidth - margin * 2
+                        midLineStyle.width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                        midLineStyle.left = leftPoint.el.offsetLeft + margin
+                        midLineStyle.top = leftPoint.el.offsetTop + margin
+                    } else {
+                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                        const addLine = leftPoint.el.offsetWidth - margin * 2
+                        const width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                        const height = Math.abs(leftPoint.el.offsetTop - rightPoint.el.offsetTop) + addLine
+                        const angle = (Math.atan(height / width) * 180) / Math.PI
+
+                        midLineStyle.width = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+                        midLineStyle.left = leftPoint.el.offsetLeft - (midLineStyle.width - width) / 2
+                        midLineStyle.top = leftPoint.el.offsetTop + height / 2
+                        midLineStyle.transform = `rotate(${angle}deg)`
+
+                        // 방향에 따라 추가 연산
+                        if ((!toTheBottom && toTheRight) || (!toTheRight && toTheBottom)) {
+                            midLineStyle.top += height * -1
+                            midLineStyle.transform = `rotate(${angle * -1}deg)`
+                        }
+                        if ((toTheBottom && toTheRight) || (!toTheBottom && !toTheRight)) {
+                            midLineStyle.top -= defaultMidLineOption.width / 2
+                        }
+                        if ((!toTheBottom && toTheRight) || (toTheBottom && !toTheRight)) {
+                            midLineStyle.top += defaultMidLineOption.width / 2
+                        }
+
+                        // margin 추가
+                        midLineStyle.left += margin
+                        midLineStyle.top += margin
+                    }
+
+                    // startPoint, endPoint 서로 연결
+                    startPoint.isLinked = true
+                    endPoint.isLinked = true
+                    startPoint.linkedBlock = endPoint
+                    endPoint.linkedBlock = startPoint
+
+                    // state에 저장
+                    state.midLineData.set([startPoint, endPoint], midLineStyle)
+                }
+            }
+
+            // 수정사항 반영 및 generatingMidLinePoint 초기화
+            setState({
+                ...state,
+                generatingMidLinePoint: null,
+            })
+        },
+        cutMidLine: (midLineKey: MapData[]) => () => {
+            midLineKey.forEach(row => {
+                row.isLinked = false
+                row.linkedBlock = null
+            })
+
+            state.midLineData.delete(midLineKey)
+
+            setState({ ...state })
         },
         bindMapItem: (x, y) => el => {
             state.mapData[x][y].el = el
         },
-        createMapData(el = null): MapData {
+        createMapData(x, y): MapData {
             return {
                 uid: ++mapDataUid,
-                el,
+                el: null,
+                x,
+                y,
                 isHandle: false,
                 isLinked: false,
-                nextLadder: null,
-                nextStep: null,
-                prevLadder: null,
-                prevStep: null,
+                prevBlock: null,
+                nextBlock: null,
+                linkedBlock: null,
             }
         },
     }
@@ -249,8 +391,10 @@ const LadderGame: React.FC<InitialState> = props => {
                                                             ref={methods.bindMapItem(xIndex, yIndex)}
                                                             className={clsx(classes.ladderItemBlock, {
                                                                 [classes.ladderItemHandle]: yVal.isHandle,
+                                                                active: state.generatingMidLinePoint === yVal,
+                                                                linked: yVal.isLinked,
                                                             })}
-                                                            onClick={methods.handleClick(xIndex, yIndex)}
+                                                            onClick={methods.connectMidLine(xIndex, yIndex)}
                                                         />
                                                     )
                                                 })}
@@ -259,6 +403,16 @@ const LadderGame: React.FC<InitialState> = props => {
                                                 <Typography>{props.rewards[xIndex] || `보상 ${xIndex + 1}`}</Typography>
                                             </Box>
                                         </Grid>
+                                    )
+                                })}
+                                {Array.from(state.midLineData).map((midLine, midLineIndex) => {
+                                    return (
+                                        <div
+                                            key={midLineIndex}
+                                            className={classes.ladderMidLine}
+                                            style={midLine[1]}
+                                            onClick={methods.cutMidLine(midLine[0])}
+                                        />
                                     )
                                 })}
                             </Grid>
