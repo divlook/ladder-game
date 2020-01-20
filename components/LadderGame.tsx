@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
-import { Typography, Box, Grid, makeStyles } from '@material-ui/core'
+import { Typography, Box, Grid, makeStyles, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
 import { useLifecycle } from '~/hooks/lifecycle'
 
@@ -8,18 +8,18 @@ import { useLifecycle } from '~/hooks/lifecycle'
 TODO:
 
 클릭=터치
-block은 1:1로만 연결가능
-block이 1:1로 연결되면 midLine이 생성됨.
-midLine은 [prevStep ,nextStep] 데이터를 가지고 있어야됨. 좌표를 저장하는 방법은 2가지가 있음
-- 1. useMemo를 사용하여 mapData가 변경될 때마다 새로 계산하는 방법
-- 2. new Map()을 사용하여 변경할때마다 해당 hash만 변경하는 방법
-연결되면 isLinked가 true가 되고 더이상 클릭할 수 없음.
-midLine을 취소할 수 있으며, 취소하면 원상복귀시켜야 됨.
+// block은 1:1로만 연결가능
+// block이 1:1로 연결되면 midLine이 생성됨.
+// midLine은 [prevStep ,nextStep] 데이터를 가지고 있어야됨. 좌표를 저장하는 방법은 2가지가 있음
+// - 1. useMemo를 사용하여 mapData가 변경될 때마다 새로 계산하는 방법
+// - 2. new Map()을 사용하여 변경할때마다 해당 hash만 변경하는 방법
+// 연결되면 isLinked가 true가 되고 더이상 클릭할 수 없음.
+// midLine을 취소할 수 있으며, 취소하면 원상복귀시켜야 됨.
 보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
 resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
 
-TODO: 다음 작업할 것 = midLine 배열로 변경
-라인 이동
+TODO: 다음 작업할 것 = 게임 시작전 순서 섞기
+결과 애니메이션
 */
 
 export interface MapData {
@@ -375,6 +375,31 @@ const LadderGame: React.FC<InitialState> = props => {
                 midLine: null,
             }
         },
+        testGame: key => () => {
+            let current: any = state.mapData[key][0]
+            let cnt = 0
+            let isMove = false
+            const colors = ['#F44336', '#e91e63', '#9c27b0', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548']
+            const color = colors[Math.floor(Math.random() * 100) % colors.length]
+
+            while (current !== null && cnt < 50) {
+
+                if (current.el) current.el.style.backgroundColor = color
+
+                if (current.isLinked && !isMove) {
+                    if (current.midLine?.el) current.midLine.el.style.backgroundColor = color
+                    current = current.linkedBlock
+                    isMove = true
+                } else if (current.nextBlock) {
+                    current = current.nextBlock
+                    isMove = false
+                } else {
+                    current = null
+                    isMove = false
+                }
+                cnt++
+            }
+        },
     }
 
     useCreated(() => {
@@ -439,6 +464,16 @@ const LadderGame: React.FC<InitialState> = props => {
                             <div className={classes.resultLines}>
                                 <div className={classes.resultLineItem} />
                             </div>
+
+                            <Box>
+                                {props.players.map((playerName, key) => {
+                                    return (
+                                        <Button key={key} onClick={methods.testGame(key)}>
+                                            Test {playerName}
+                                        </Button>
+                                    )
+                                })}
+                            </Box>
                         </React.Fragment>
                     )
                 } else {
