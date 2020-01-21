@@ -415,23 +415,27 @@ const LadderGame: React.FC<InitialState> = props => {
         setCanvas: () => {
             if (resultCanvasRef.current) {
                 const canvas = resultCanvasRef.current
-
                 canvas.width = state.mapWidth
                 canvas.height = state.mapHeight
-                console.dir(canvas)
                 const ctx = canvas.getContext('2d')
 
                 if (ctx) {
                     ctx.fillStyle = '#0066cc'
-                    ctx.beginPath()
                     ctx.lineWidth = 4
                     ctx.strokeStyle = '#0066cc'
-                    ctx.lineTo(100, 100)
+
+                    const start = { dx: 0, dy: 0 }
+
+                    start.dx = (state.mapData[0][0].el?.offsetLeft || 0) + (state.mapData[0][0].el?.offsetWidth || 0 + ctx.lineWidth) / 2
+                    start.dy = (state.mapData[0][0].el?.offsetTop || 0)
+                    ctx.moveTo(start.dx, start.dy)
+
                     ctx.lineTo(100, 200)
                     ctx.lineTo(200, 300)
-                    ctx.closePath()
+
                     ctx.stroke()
                 }
+
                 return true
             } else {
                 return false
@@ -521,6 +525,10 @@ const LadderGame: React.FC<InitialState> = props => {
                             </div>
 
                             <Box>
+                                <Button onClick={methods.setCanvas}>
+                                    캔바스 그리기
+                                </Button>
+
                                 {props.players.map((playerName, key) => {
                                     return (
                                         <Button key={key} onClick={methods.testGame(key)}>
