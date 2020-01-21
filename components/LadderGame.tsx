@@ -180,24 +180,25 @@ const LadderGame: React.FC<InitialState> = props => {
     const [state, setState] = useState(initialState)
     const classes = useStyles(state)()
 
+    const mapRef = useRef<HTMLDivElement>(null)
     const wrapperRef = useRef<HTMLDivElement>(null)
 
     const methods = {
         calcMapSize() {
-            setState({
-                ...state,
-                mapWidth: wrapperRef.current?.clientWidth || 0,
-                mapHeight: Math.max(state.mapHeight, wrapperRef.current?.clientHeight || 0),
-            })
+            setState(prevState => ({
+                ...prevState,
+                mapWidth: mapRef.current?.scrollWidth || 0,
+                mapHeight: Math.max(state.mapHeight, mapRef.current?.scrollHeight || 0),
+            }))
         },
         paintLadder() {
             const { ladderQty } = props
             const { mapData } = state
 
-            setState({
-                ...state,
+            setState(prevState => ({
+                ...prevState,
                 isPaintingLadder: true,
-            })
+            }))
 
             return new Promise(resolve => {
                 for (let x = 0; x < ladderQty; x++) {
@@ -217,14 +218,16 @@ const LadderGame: React.FC<InitialState> = props => {
                     }
                 }
 
-                setState({
-                    ...state,
-                    mapData,
-                    isPaintingLadder: false,
-                    isPaintedLadder: true,
-                })
                 // nextTick이 있으면 좋을텐데
-                resolve()
+                setState(prevState => {
+                    resolve()
+                    return {
+                        ...prevState,
+                        mapData,
+                        isPaintingLadder: false,
+                        isPaintedLadder: true,
+                    }
+                })
             })
         },
         connectMidLine: (x: number, y: number) => e => {
@@ -393,7 +396,6 @@ const LadderGame: React.FC<InitialState> = props => {
             const color = colors[Math.floor(Math.random() * 100) % colors.length]
 
             while (current !== null && cnt < 50) {
-
                 if (current.el) current.el.style.backgroundColor = color
 
                 if (current.isLinked && !isMove) {
@@ -414,17 +416,16 @@ const LadderGame: React.FC<InitialState> = props => {
     }
 
     useCreated(() => {
-        methods.calcMapSize()
-        wrapperRef.current?.addEventListener('selectstart', methods.handleSelectstart)
+        methods.paintLadder().then(() => void methods.calcMapSize())
+        mapRef.current?.addEventListener('selectstart', methods.handleSelectstart)
     })
 
     useMounted(() => {
         console.log(state)
-        methods.paintLadder()
     })
 
     useBeforeDestroy(() => {
-        wrapperRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
+        mapRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
         state.isPaintingLadder = false
         state.isPaintedLadder = false
         state.mapData = state.mapData.splice(0, state.mapData.length)
@@ -436,7 +437,7 @@ const LadderGame: React.FC<InitialState> = props => {
     })
 
     return (
-        <div ref={wrapperRef} className={classes.root}>
+        <div className={classes.root}>
             {(() => {
                 if (state.isPaintingLadder) {
                     return <Typography>사다리가 그려지는 중 입니다. 기다려주세요.</Typography>
@@ -444,7 +445,7 @@ const LadderGame: React.FC<InitialState> = props => {
                     return (
                         <React.Fragment>
                             <div className={classes.ladders}>
-                                <Grid className={classes.ladderContainer} container>
+                                <Grid ref={mapRef} className={classes.ladderContainer} container>
                                     {state.mapData.map((xVal, xIndex) => {
                                         return (
                                             <Grid key={xIndex} item>
