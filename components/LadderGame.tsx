@@ -79,7 +79,6 @@ const useStyles = (state: State) =>
             position: 'relative',
             zIndex: 1,
             width: '100%',
-            minWidth: state.mapWidth,
             minHeight: state.mapHeight,
             overflowX: 'auto',
             overflowY: 'hidden',
