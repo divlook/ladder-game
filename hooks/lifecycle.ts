@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 // TODO:
 // activated
 // deactivated
-// beforeDestroy
 // nextTick
 
 enum Color {
@@ -14,6 +13,7 @@ interface Options {
     created?: (cb) => void
     mounted?: (cb) => void
     updated?: (cb) => void
+    beforeDestroy?: (cb) => void
     useLog?: boolean
     logLabel?: string
 }
@@ -22,6 +22,7 @@ enum HookNames {
     created = 'useCreated',
     mounted = 'useMounted',
     updated = 'useUpdated',
+    beforeDestroy = 'useBeforeDestroy',
 }
 
 const initialState = {
@@ -39,6 +40,7 @@ const callbacks = {
     created: [],
     mounted: [],
     updated: [],
+    beforeDestroy: [],
 }
 
 // init에서 변형됨
@@ -46,6 +48,7 @@ const hooks = {
     useCreated: (cb?: any) => void cb,
     useMounted: (cb?: any) => void cb,
     useUpdated: (cb?: any) => void cb,
+    useBeforeDestroy: (cb?: any) => void cb,
 }
 
 // init에서 변형됨
@@ -53,6 +56,7 @@ const run = {
     created: (cb?: any) => void cb,
     mounted: (cb?: any) => void cb,
     updated: (cb?: any) => void cb,
+    beforeDestroy: (cb?: any) => void cb,
 }
 
 const init = (opt) => {
@@ -146,6 +150,27 @@ export const useLifecycle = (opt?: Options) => {
             prevState.updated = true
         }
     })
+
+    /**
+     * beforeDestroy
+     */
+    useEffect(() => {
+        return () => {
+            if (state.mounted) {
+                state.created = false
+                state.mounted = false
+                state.updated = false
+
+                opt?.useLog && console.group(`%c: beforeDestroy`, `color: ${Color.PersianGreen}`, opt?.logLabel || '')
+                run.beforeDestroy?.()
+                opt?.useLog && console.groupEnd()
+
+                prevState.created = false
+                prevState.mounted = false
+                prevState.updated = false
+            }
+        }
+    }, [state.mounted])
 
     return {
         ...state,
