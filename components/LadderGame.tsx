@@ -78,13 +78,22 @@ const useStyles = (state: State) =>
         ladders: {
             position: 'relative',
             zIndex: 1,
+            width: '100%',
             minWidth: state.mapWidth,
             minHeight: state.mapHeight,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+        },
+        ladderContainer: {
+            width: 'auto',
+            justifyContent: 'space-between',
+            flexWrap: 'nowrap',
         },
         ladderItem: {
             display: 'flex',
             alignItems: 'center',
             flexDirection: 'column',
+            minWidth: 80,
         },
         ladderItemHeader: {
             textAlign: 'center',
@@ -435,47 +444,49 @@ const LadderGame: React.FC<InitialState> = props => {
                 } else if (state.isPaintedLadder && !state.isPaintingLadder) {
                     return (
                         <React.Fragment>
-                            <Grid className={classes.ladders} container spacing={2} justify="space-evenly">
-                                {state.mapData.map((xVal, xIndex) => {
-                                    return (
-                                        <Grid key={xIndex} item>
-                                            <Box className={classes.ladderItemHeader}>
-                                                <Typography>{props.players[xIndex] || `참가자 ${xIndex + 1}`}</Typography>
-                                            </Box>
-                                            <Box className={classes.ladderItem}>
-                                                {xVal.map((yVal, yIndex) => {
-                                                    return (
-                                                        <div
-                                                            key={yIndex}
-                                                            ref={methods.bindEl(yVal)}
-                                                            className={clsx(classes.ladderItemBlock, {
-                                                                [classes.ladderItemHandle]: yVal.isHandle,
-                                                                active: state.generatingMidLinePoint === yVal,
-                                                                linked: yVal.isLinked,
-                                                            })}
-                                                            onClick={methods.connectMidLine(xIndex, yIndex)}
-                                                        />
-                                                    )
-                                                })}
-                                            </Box>
-                                            <Box className={classes.ladderItemFooter}>
-                                                <Typography>{props.rewards[xIndex] || `보상 ${xIndex + 1}`}</Typography>
-                                            </Box>
-                                        </Grid>
-                                    )
-                                })}
-                                {state.midLineData.map((midLine, midLineIndex) => {
-                                    return (
-                                        <div
-                                            key={midLineIndex}
-                                            ref={methods.bindEl(midLine)}
-                                            className={classes.ladderMidLine}
-                                            style={midLine.style}
-                                            onClick={methods.cutMidLine(midLine)}
-                                        />
-                                    )
-                                })}
-                            </Grid>
+                            <div className={classes.ladders}>
+                                <Grid className={classes.ladderContainer} container>
+                                    {state.mapData.map((xVal, xIndex) => {
+                                        return (
+                                            <Grid key={xIndex} item>
+                                                <Box className={classes.ladderItemHeader}>
+                                                    <Typography>{props.players[xIndex] || `참가자 ${xIndex + 1}`}</Typography>
+                                                </Box>
+                                                <Box className={classes.ladderItem}>
+                                                    {xVal.map((yVal, yIndex) => {
+                                                        return (
+                                                            <div
+                                                                key={yIndex}
+                                                                ref={methods.bindEl(yVal)}
+                                                                className={clsx(classes.ladderItemBlock, {
+                                                                    [classes.ladderItemHandle]: yVal.isHandle,
+                                                                    active: state.generatingMidLinePoint === yVal,
+                                                                    linked: yVal.isLinked,
+                                                                })}
+                                                                onClick={methods.connectMidLine(xIndex, yIndex)}
+                                                            />
+                                                        )
+                                                    })}
+                                                </Box>
+                                                <Box className={classes.ladderItemFooter}>
+                                                    <Typography>{props.rewards[xIndex] || `보상 ${xIndex + 1}`}</Typography>
+                                                </Box>
+                                            </Grid>
+                                        )
+                                    })}
+                                    {state.midLineData.map((midLine, midLineIndex) => {
+                                        return (
+                                            <div
+                                                key={midLineIndex}
+                                                ref={methods.bindEl(midLine)}
+                                                className={classes.ladderMidLine}
+                                                style={midLine.style}
+                                                onClick={methods.cutMidLine(midLine)}
+                                            />
+                                        )
+                                    })}
+                                </Grid>
+                            </div>
                             <div className={classes.resultLines}>
                                 <div className={classes.resultLineItem} />
                             </div>
