@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 // TODO:
 // activated
 // deactivated
+// beforeDestroy
 // nextTick
 
 enum Color {
