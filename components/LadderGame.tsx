@@ -375,6 +375,9 @@ const LadderGame: React.FC<InitialState> = props => {
                 midLine: null,
             }
         },
+        /**
+         * 테스트용 함수
+         */
         testGame: key => () => {
             let current: any = state.mapData[key][0]
             let cnt = 0
