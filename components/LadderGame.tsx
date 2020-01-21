@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, makeStyles, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
@@ -168,7 +168,7 @@ const useStyles = (state: State) =>
 let __uid = 0
 
 const LadderGame: React.FC<InitialState> = props => {
-    const { mounted, useCreated, useMounted } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
+    const { useCreated, useMounted, useBeforeDestroy } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
     const [state, setState] = useState(initialState)
     const classes = useStyles(state)()
 
@@ -405,24 +405,6 @@ const LadderGame: React.FC<InitialState> = props => {
         handleSelectstart: e => void e.preventDefault(),
     }
 
-    useEffect(() => {
-        return () => {
-            if (mounted) {
-                console.group(`%c: BeforeDestroy`, 'color: #009688')
-                wrapperRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
-                state.isPaintingLadder = false
-                state.isPaintedLadder = false
-                state.mapData = []
-                state.mapWidth = 0
-                state.mapHeight = defaultOption.mapMinHeight
-                state.ladderBlockCnt = 21
-                state.midLineData = []
-                state.generatingMidLinePoint = null
-                console.groupEnd()
-            }
-        }
-    }, [mounted])
-
     useCreated(() => {
         methods.calcMapSize()
         wrapperRef.current?.addEventListener('selectstart', methods.handleSelectstart)
@@ -431,6 +413,18 @@ const LadderGame: React.FC<InitialState> = props => {
     useMounted(() => {
         console.log(state)
         methods.paintLadder()
+    })
+
+    useBeforeDestroy(() => {
+        wrapperRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
+        state.isPaintingLadder = false
+        state.isPaintedLadder = false
+        state.mapData = state.mapData.splice(0, state.mapData.length)
+        state.mapWidth = 0
+        state.mapHeight = defaultOption.mapMinHeight
+        state.ladderBlockCnt = 21
+        state.midLineData = state.midLineData.splice(0, state.midLineData.length)
+        state.generatingMidLinePoint = null
     })
 
     return (
