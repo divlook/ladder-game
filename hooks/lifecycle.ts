@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 // TODO:
 // activated
 // deactivated
+// nextTick
 
 enum Color {
     PersianGreen = '#009688',
