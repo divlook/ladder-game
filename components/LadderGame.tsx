@@ -18,8 +18,8 @@ TODO:
 보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
 resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
 
-TODO: 다음 작업할 것 = 게임 시작전 순서 섞기
-결과 애니메이션
+TODO: 다음 작업할 것 = 결과 애니메이션
+게임 시작전 순서 섞기
 */
 
 export interface MapData {
@@ -209,15 +209,14 @@ const LadderGame: React.FC<InitialState> = props => {
                     }
                 }
 
-                setTimeout(() => {
-                    setState({
-                        ...state,
-                        mapData,
-                        isPaintingLadder: false,
-                        isPaintedLadder: true,
-                    })
-                    resolve()
-                }, 1000)
+                setState({
+                    ...state,
+                    mapData,
+                    isPaintingLadder: false,
+                    isPaintedLadder: true,
+                })
+                // nextTick이 있으면 좋을텐데
+                resolve()
             })
         },
         connectMidLine: (x: number, y: number) => e => {
