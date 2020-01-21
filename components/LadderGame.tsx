@@ -153,7 +153,7 @@ const useStyles = (state: State) =>
         //     cursor: 'no-drop',
         // },
         // TODO: 나중에 그려져야됨 (zIndex 2로 변경 필요)
-        resultLines: {
+        result: {
             position: 'absolute',
             zIndex: 0,
             width: '100%',
@@ -162,14 +162,6 @@ const useStyles = (state: State) =>
             right: 0,
             top: 0,
             bottom: 0,
-        },
-        resultLineItem: {
-            position: 'absolute',
-            left: 10,
-            top: 10,
-            width: 10,
-            height: 10,
-            backgroundColor: 'red',
         },
     }))
 
@@ -181,54 +173,46 @@ const LadderGame: React.FC<InitialState> = props => {
     const classes = useStyles(state)()
 
     const mapRef = useRef<HTMLDivElement>(null)
-    const wrapperRef = useRef<HTMLDivElement>(null)
+    const resultCanvasRef = useRef<HTMLCanvasElement>(null)
 
     const methods = {
         calcMapSize() {
-            setState(prevState => ({
-                ...prevState,
-                mapWidth: mapRef.current?.scrollWidth || 0,
-                mapHeight: Math.max(state.mapHeight, mapRef.current?.scrollHeight || 0),
-            }))
+            if (mapRef.current) {
+                state.mapWidth = mapRef.current?.scrollWidth || 0
+                state.mapHeight = Math.max(state.mapHeight, mapRef.current?.scrollHeight || 0)
+                setState(state)
+                return true
+            } else {
+                return false
+            }
         },
         paintLadder() {
             const { ladderQty } = props
             const { mapData } = state
 
-            setState(prevState => ({
-                ...prevState,
-                isPaintingLadder: true,
-            }))
+            state.isPaintingLadder = true
 
-            return new Promise(resolve => {
-                for (let x = 0; x < ladderQty; x++) {
-                    mapData[x] = []
-                    for (let y = 0; y < state.ladderBlockCnt; y++) {
-                        mapData[x][y] = methods.createMapData(x, y)
+            for (let x = 0; x < ladderQty; x++) {
+                mapData[x] = []
+                for (let y = 0; y < state.ladderBlockCnt; y++) {
+                    mapData[x][y] = methods.createMapData(x, y)
 
-                        if (y > 0) {
-                            const prev = mapData[x][y - 1]
-                            prev.nextBlock = mapData[x][y]
-                            mapData[x][y].prevBlock = prev
-                        }
+                    if (y > 0) {
+                        const prev = mapData[x][y - 1]
+                        prev.nextBlock = mapData[x][y]
+                        mapData[x][y].prevBlock = prev
+                    }
 
-                        if (y > 0 && y < state.ladderBlockCnt - 1) {
-                            mapData[x][y].isHandle = y % 2 !== 0
-                        }
+                    if (y > 0 && y < state.ladderBlockCnt - 1) {
+                        mapData[x][y].isHandle = y % 2 !== 0
                     }
                 }
+            }
 
-                // nextTick이 있으면 좋을텐데
-                setState(prevState => {
-                    resolve()
-                    return {
-                        ...prevState,
-                        mapData,
-                        isPaintingLadder: false,
-                        isPaintedLadder: true,
-                    }
-                })
-            })
+            state.mapData = mapData
+            state.isPaintingLadder = false
+            state.isPaintedLadder = true
+            setState(state)
         },
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
@@ -428,14 +412,44 @@ const LadderGame: React.FC<InitialState> = props => {
             }
         },
         handleSelectstart: e => void e.preventDefault(),
+        setCanvas: () => {
+            if (resultCanvasRef.current) {
+                const canvas = resultCanvasRef.current
+
+                canvas.width = state.mapWidth
+                canvas.height = state.mapHeight
+                console.dir(canvas)
+                const ctx = canvas.getContext('2d')
+
+                if (ctx) {
+                    ctx.fillStyle = '#0066cc'
+                    ctx.beginPath()
+                    ctx.lineWidth = 4
+                    ctx.strokeStyle = '#0066cc'
+                    ctx.lineTo(100, 100)
+                    ctx.lineTo(100, 200)
+                    ctx.lineTo(200, 300)
+                    ctx.closePath()
+                    ctx.stroke()
+                }
+                return true
+            } else {
+                return false
+            }
+        },
     }
 
-    useCreated(() => {
-        methods.paintLadder().then(() => void methods.calcMapSize())
+    useCreated(async () => {
+        methods.paintLadder()
+
         mapRef.current?.addEventListener('selectstart', methods.handleSelectstart)
     })
 
     useMounted(() => {
+        if (methods.calcMapSize()) {
+            methods.setCanvas()
+        }
+
         console.log(state)
     })
 
@@ -502,8 +516,8 @@ const LadderGame: React.FC<InitialState> = props => {
                                     })}
                                 </Grid>
                             </div>
-                            <div className={classes.resultLines}>
-                                <div className={classes.resultLineItem} />
+                            <div className={classes.result}>
+                                <canvas ref={resultCanvasRef} />
                             </div>
 
                             <Box>
