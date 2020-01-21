@@ -298,7 +298,7 @@ const LadderGame: React.FC<InitialState> = props => {
                             width: defaultMidLineOption.width,
                             height: defaultMidLineOption.width,
                             transform: 'rotate(0deg)',
-                        }
+                        },
                     }
 
                     if (toTheSameTop) {
@@ -392,7 +392,22 @@ const LadderGame: React.FC<InitialState> = props => {
             let current: any = state.mapData[key][0]
             let cnt = 0
             let isMove = false
-            const colors = ['#F44336', '#e91e63', '#9c27b0', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548']
+            const colors = [
+                '#F44336',
+                '#e91e63',
+                '#9c27b0',
+                '#3f51b5',
+                '#2196f3',
+                '#00bcd4',
+                '#009688',
+                '#8bc34a',
+                '#cddc39',
+                '#ffeb3b',
+                '#ffc107',
+                '#ff9800',
+                '#ff5722',
+                '#795548',
+            ]
             const color = colors[Math.floor(Math.random() * 100) % colors.length]
 
             while (current !== null && cnt < 50) {
