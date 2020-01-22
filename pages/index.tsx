@@ -15,16 +15,6 @@ import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
 import LadderGame from '~/components/LadderGame'
 
-/*
-사다리 수를 입력 받는다
-이름을 입력 받는다
-결과를 입력 받는다
-막대기를 그린다
-사용자가 중간 막대기를 그린다
-게임을 시작한다 (동시 or 클릭순)
-다시하기 or 처음으로
-*/
-
 export const useStyles = makeStyles(theme => ({
     root: {
         width: '100%',
@@ -53,15 +43,8 @@ export const useStyles = makeStyles(theme => ({
 const IndexPage: NextPage = () => {
     const classes = useStyles()
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
-    // TODO: Sample
-    const [activeStep, setActiveStep] = useState(0 || steps.length)
-    const [store, dispatch] = useReducer(IndexReducer, {
-        ...initialState,
-        // TODO: Sample
-        ladderQty: 4,
-        players: ['미유', '로빈', '에반', '차드'],
-        rewards: ['당첨', '꽝', '꽝', '꽝'],
-    })
+    const [activeStep, setActiveStep] = useState(0)
+    const [store, dispatch] = useReducer(IndexReducer, initialState)
     const formRef = useRef<HTMLFormElement>(null)
 
     const handleSubmit = e => {
