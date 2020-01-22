@@ -51,6 +51,15 @@ export interface State {
     ladderBlockCnt: number
     midLineData: MidLine[]
     generatingMidLinePoint?: MapData | null
+    /**
+     * 게임 단계
+     * - 0: 시작전
+     * - 1: 진행중
+     * - 2: 완료
+     */
+    gameStep: number
+    completedLineIndexs: number[]
+    colorIndex: number
 }
 
 export const defaultOption = {
@@ -66,6 +75,9 @@ export const initialState: State = {
     ladderBlockCnt: 21,
     midLineData: [],
     generatingMidLinePoint: null,
+    gameStep: 0,
+    completedLineIndexs: [],
+    colorIndex: 0,
 }
 
 const useStyles = (state: State) =>
@@ -143,27 +155,53 @@ const useStyles = (state: State) =>
             boxShadow: '0 2px 4px 2px rgba(0, 0, 0, 0.2)',
             cursor: 'pointer',
         },
-        // cursorGrap: {
-        //     cursor: 'grab',
-        // },
-        // cursorGrabbing: {
-        //     cursor: 'grabbing',
-        // },
-        // cursorNoDrop: {
-        //     cursor: 'no-drop',
-        // },
-        // TODO: 나중에 그려져야됨 (zIndex 2로 변경 필요)
         result: {
+            display: 'none',
             position: 'absolute',
-            zIndex: 0,
+            zIndex: 999,
             width: '100%',
             height: '100%',
             left: 0,
             right: 0,
             top: 0,
             bottom: 0,
+            '&.active': {
+                display: 'block',
+            },
+            '& canvas': {
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+            },
+        },
+        buttons: {
+            marginTop: theme.spacing(6),
+            marginBottom: theme.spacing(4),
+        },
+        buttonItem: {
+            cursor: 'pointer',
+            '&:not(:disabled)': {
+                zIndex: 1000,
+            }
         },
     }))
+
+const colors = [
+    '#ff8990',
+    '#f7a03e',
+    '#fed853',
+    '#38bb8e',
+    '#139367',
+    '#cef500',
+    '#ffb700',
+    '#ff008f',
+    '#00b4c4',
+    '#ff4040',
+]
 
 let __uid = 0
 
@@ -173,7 +211,7 @@ const LadderGame: React.FC<InitialState> = props => {
     const classes = useStyles(state)()
 
     const mapRef = useRef<HTMLDivElement>(null)
-    const resultCanvasRef = useRef<HTMLCanvasElement>(null)
+    const resultRef = useRef<HTMLDivElement>(null)
 
     const methods = {
         calcMapSize() {
@@ -369,77 +407,132 @@ const LadderGame: React.FC<InitialState> = props => {
                 midLine: null,
             }
         },
-        /**
-         * 테스트용 함수
-         */
-        testGame: key => () => {
-            let current: any = state.mapData[key][0]
-            let cnt = 0
-            let isMove = false
-            const colors = [
-                '#F44336',
-                '#e91e63',
-                '#9c27b0',
-                '#3f51b5',
-                '#2196f3',
-                '#00bcd4',
-                '#009688',
-                '#8bc34a',
-                '#cddc39',
-                '#ffeb3b',
-                '#ffc107',
-                '#ff9800',
-                '#ff5722',
-                '#795548',
-            ]
-            const color = colors[Math.floor(Math.random() * 100) % colors.length]
-
-            while (current !== null && cnt < 50) {
-                if (current.el) current.el.style.backgroundColor = color
-
-                if (current.isLinked && !isMove) {
-                    if (current.midLine?.el) current.midLine.el.style.backgroundColor = color
-                    current = current.linkedBlock
-                    isMove = true
-                } else if (current.nextBlock) {
-                    current = current.nextBlock
-                    isMove = false
-                } else {
-                    current = null
-                    isMove = false
-                }
-                cnt++
-            }
-        },
         handleSelectstart: e => void e.preventDefault(),
-        setCanvas: () => {
-            if (resultCanvasRef.current) {
-                const canvas = resultCanvasRef.current
+        playGame: key => () => {
+            if (resultRef.current && !state.completedLineIndexs.includes(key)) {
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
                 canvas.width = state.mapWidth
                 canvas.height = state.mapHeight
-                const ctx = canvas.getContext('2d')
 
                 if (ctx) {
-                    ctx.fillStyle = '#0066cc'
-                    ctx.lineWidth = 4
-                    ctx.strokeStyle = '#0066cc'
+                    const coordinates: [number, number][] = []
+                    const color = colors[state.colorIndex % colors.length]
 
-                    const start = { dx: 0, dy: 0 }
+                    let prevBlockUid = 0
+                    let current: MapData | null = state.mapData[key][0]
 
-                    start.dx = (state.mapData[0][0].el?.offsetLeft || 0) + (state.mapData[0][0].el?.offsetWidth || 0 + ctx.lineWidth) / 2
-                    start.dy = (state.mapData[0][0].el?.offsetTop || 0)
-                    ctx.moveTo(start.dx, start.dy)
+                    ctx.lineWidth = 3
+                    ctx.strokeStyle = color
+                    ctx.lineJoin = 'round'
 
-                    ctx.lineTo(100, 200)
-                    ctx.lineTo(200, 300)
+                    while (current !== null) {
+                        let next: MapData | null = null
+                        if (current.nextBlock) {
+                            if (coordinates.length === 0) {
+                                // 시작
+                                coordinates.push([
+                                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                                    current.el?.offsetTop || 0,
+                                ])
 
-                    ctx.stroke()
+                                next = current.nextBlock
+                            } else if (current.linkedBlock) {
+                                if (current.isHandle) {
+                                    coordinates.push([
+                                        (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                                        (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
+                                    ])
+                                }
+
+                                if (current.linkedBlock.uid === prevBlockUid) {
+                                    // midLine 이동 후
+                                    next = current.nextBlock
+                                } else {
+                                    // midLine 이동 전
+                                    next = current.linkedBlock
+                                }
+                            } else {
+                                // 일반 block
+                                next = current.nextBlock
+                            }
+                        } else {
+                            // 끝
+                            coordinates.push([
+                                (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                                (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
+                            ])
+                        }
+
+                        prevBlockUid = current?.uid || 0
+                        current = next
+                    }
+
+                    for (let index = 0, len = coordinates.length; index < len; index++) {
+                        const el = coordinates[index]
+
+                        if (index === 0) {
+                            ctx.moveTo(...el)
+                        } else {
+                            ctx.lineTo(...el)
+                        }
+
+                        if (index === len - 1) {
+                            ctx.lineTo(el[0], el[1] + 3)
+                            ctx.stroke()
+                            ctx.beginPath()
+                            ctx.arc(el[0], el[1] + 8, 6, 0, Math.PI * 2)
+                            ctx.fillStyle = color
+                            ctx.closePath()
+                            ctx.fill()
+                        }
+                    }
+
+                    resultRef.current.append(canvas)
                 }
+
+                state.colorIndex++
+                state.completedLineIndexs.push(key)
+                if (state.completedLineIndexs.length === state.mapData.length) {
+                    state.gameStep = 2
+                }
+
+                setState({
+                    ...state,
+                    gameStep: state.gameStep,
+                    completedLineIndexs: state.completedLineIndexs,
+                })
 
                 return true
             } else {
                 return false
             }
+        },
+        doReady() {
+            state.gameStep = 1
+            setState({ ...state })
+        },
+        reloadGame() {
+            const prevMidLineData = state.midLineData.splice(0, state.midLineData.length)
+            state.generatingMidLinePoint = null
+            state.gameStep = 0
+            state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
+            state.colorIndex = 0
+
+            prevMidLineData.forEach(mapData => {
+                mapData.blocks.forEach(block => {
+                    block.isLinked = false
+                    block.linkedBlock = null
+                })
+            })
+
+            if (resultRef.current) {
+                while (resultRef.current.firstChild) {
+                    resultRef.current.removeChild(resultRef.current.firstChild)
+                }
+            }
+
+            setState({ ...state })
         },
     }
 
@@ -450,9 +543,7 @@ const LadderGame: React.FC<InitialState> = props => {
     })
 
     useMounted(() => {
-        if (methods.calcMapSize()) {
-            methods.setCanvas()
-        }
+        methods.calcMapSize()
 
         console.log(state)
     })
@@ -461,12 +552,15 @@ const LadderGame: React.FC<InitialState> = props => {
         mapRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
         state.isPaintingLadder = false
         state.isPaintedLadder = false
-        state.mapData = state.mapData.splice(0, state.mapData.length)
+        state.mapData.splice(0, state.mapData.length)
         state.mapWidth = 0
         state.mapHeight = defaultOption.mapMinHeight
         state.ladderBlockCnt = 21
-        state.midLineData = state.midLineData.splice(0, state.midLineData.length)
+        state.midLineData.splice(0, state.midLineData.length)
         state.generatingMidLinePoint = null
+        state.gameStep = 0
+        state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
+        state.colorIndex = 0
     })
 
     return (
@@ -483,7 +577,13 @@ const LadderGame: React.FC<InitialState> = props => {
                                         return (
                                             <Grid key={xIndex} item>
                                                 <Box className={classes.ladderItemHeader}>
-                                                    <Typography>{props.players[xIndex] || `참가자 ${xIndex + 1}`}</Typography>
+                                                    <Button
+                                                        className={classes.buttonItem}
+                                                        variant={state.gameStep > 0 ? 'contained' : 'text'}
+                                                        color="primary"
+                                                        onClick={methods.playGame(xIndex)}
+                                                        disabled={state.gameStep === 0 || state.completedLineIndexs.includes(xIndex)}
+                                                        >{props.players[xIndex] || `참가자 ${xIndex + 1}`}</Button>
                                                 </Box>
                                                 <Box className={classes.ladderItem}>
                                                     {xVal.map((yVal, yIndex) => {
@@ -518,25 +618,37 @@ const LadderGame: React.FC<InitialState> = props => {
                                             />
                                         )
                                     })}
+                                    <div ref={resultRef} className={clsx(classes.result, { active: state.gameStep > 0 })} />
                                 </Grid>
                             </div>
-                            <div className={classes.result}>
-                                <canvas ref={resultCanvasRef} />
-                            </div>
 
-                            <Box>
-                                <Button onClick={methods.setCanvas}>
-                                    캔바스 그리기
-                                </Button>
-
-                                {props.players.map((playerName, key) => {
-                                    return (
-                                        <Button key={key} onClick={methods.testGame(key)}>
-                                            Test {playerName}
+                            <Grid container spacing={2} className={classes.buttons} justify="center">
+                                <Grid item>
+                                    {state.gameStep === 0 && (
+                                        <Button
+                                            className={classes.buttonItem}
+                                            variant="contained"
+                                            color="secondary"
+                                            size="large"
+                                            onClick={methods.doReady}
+                                        >
+                                            준비 완료
                                         </Button>
-                                    )
-                                })}
-                            </Box>
+                                    )}
+                                    {state.gameStep > 0 && (
+                                        <Button
+                                            className={classes.buttonItem}
+                                            variant="contained"
+                                            color="secondary"
+                                            size="large"
+                                            onClick={methods.reloadGame}
+                                            disabled={state.gameStep < 2}
+                                        >
+                                            다시하기
+                                        </Button>
+                                    )}
+                                </Grid>
+                            </Grid>
                         </React.Fragment>
                     )
                 } else {
