@@ -170,7 +170,7 @@ const useStyles = (state: State) =>
             },
             '& canvas': {
                 position: 'absolute',
-                width: '100%',
+                minWidth: '100%',
                 height: '100%',
                 left: 0,
                 right: 0,
@@ -474,7 +474,7 @@ const LadderGame: React.FC<InitialState> = props => {
 
                         if (index === 0) {
                             ctx.beginPath()
-                            ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2, true)
+                            ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
                             ctx.closePath()
                             ctx.fill()
                             ctx.beginPath()
@@ -486,7 +486,6 @@ const LadderGame: React.FC<InitialState> = props => {
 
                         if (index === len - 1) {
                             ctx.lineTo(xy[0], xy[1] + 3)
-                            ctx.closePath()
                             ctx.stroke()
                             ctx.beginPath()
                             ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
@@ -579,14 +578,14 @@ const LadderGame: React.FC<InitialState> = props => {
                     return (
                         <React.Fragment>
                             <div className={classes.ladders}>
-                                <Grid ref={mapRef} className={classes.ladderContainer} container>
+                                <Grid ref={mapRef} className={classes.ladderContainer} container spacing={2}>
                                     {state.mapData.map((xVal, xIndex) => {
                                         return (
                                             <Grid key={xIndex} item>
                                                 <Box className={classes.ladderItemHeader}>
                                                     <Button
                                                         className={classes.buttonItem}
-                                                        variant={state.gameStep > 0 ? 'contained' : 'text'}
+                                                        variant="contained"
                                                         color="primary"
                                                         onClick={methods.playGame(xIndex)}
                                                         disabled={state.gameStep === 0 || state.completedLineIndexs.includes(xIndex)}
