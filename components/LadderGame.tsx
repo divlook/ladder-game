@@ -7,7 +7,7 @@ import { useLifecycle } from '~/hooks/lifecycle'
 /*
 TODO:
 
-클릭=터치
+// 클릭=터치
 // block은 1:1로만 연결가능
 // block이 1:1로 연결되면 midLine이 생성됨.
 // midLine은 [prevStep ,nextStep] 데이터를 가지고 있어야됨. 좌표를 저장하는 방법은 2가지가 있음
@@ -15,11 +15,17 @@ TODO:
 // - 2. new Map()을 사용하여 변경할때마다 해당 hash만 변경하는 방법
 // 연결되면 isLinked가 true가 되고 더이상 클릭할 수 없음.
 // midLine을 취소할 수 있으며, 취소하면 원상복귀시켜야 됨.
-보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
-resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
+// 보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
+// resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
+resultLine이 그려질 때 애니메이션 추가
+결과 데이터 저장
+확률 표시
 
-TODO: 다음 작업할 것 = 결과 애니메이션
-게임 시작전 순서 섞기
+싱글모드, 멀티모드
+유저정보 입력
+호스트가 게임 생성
+다른 유저들이 게임에 참가
+
 */
 
 export interface MapData {
@@ -60,6 +66,7 @@ export interface State {
     gameStep: number
     completedLineIndexs: number[]
     colorIndex: number
+    rewards: string[]
 }
 
 export const defaultOption = {
@@ -78,6 +85,7 @@ export const initialState: State = {
     gameStep: 0,
     completedLineIndexs: [],
     colorIndex: 0,
+    rewards: [],
 }
 
 const useStyles = (state: State) =>
@@ -516,6 +524,8 @@ const LadderGame: React.FC<InitialState> = props => {
         },
         doReady() {
             state.gameStep = 1
+            state.rewards = [...props.rewards]
+            state.rewards.sort(() => Math.random() - Math.random())
             setState({ ...state })
         },
         reloadGame() {
@@ -608,7 +618,16 @@ const LadderGame: React.FC<InitialState> = props => {
                                                     })}
                                                 </Box>
                                                 <Box className={classes.ladderItemFooter}>
-                                                    <Typography>{props.rewards[xIndex] || `보상 ${xIndex + 1}`}</Typography>
+                                                    {state.gameStep === 0 && (
+                                                        <Typography>
+                                                            보상 {xIndex + 1}
+                                                        </Typography>
+                                                    )}
+                                                    {state.gameStep > 0 && (
+                                                        <Typography>
+                                                            {state.rewards[xIndex] || `보상 ${xIndex + 1}`}
+                                                        </Typography>
+                                                    )}
                                                 </Box>
                                             </Grid>
                                         )
