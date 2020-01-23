@@ -423,8 +423,9 @@ const LadderGame: React.FC<InitialState> = props => {
                     let current: MapData | null = state.mapData[key][0]
 
                     ctx.lineWidth = 3
-                    ctx.strokeStyle = color
                     ctx.lineJoin = 'round'
+                    ctx.strokeStyle = color
+                    ctx.fillStyle = color
 
                     while (current !== null) {
                         let next: MapData | null = null
@@ -469,20 +470,26 @@ const LadderGame: React.FC<InitialState> = props => {
                     }
 
                     for (let index = 0, len = coordinates.length; index < len; index++) {
-                        const el = coordinates[index]
+                        const xy = coordinates[index]
 
                         if (index === 0) {
-                            ctx.moveTo(...el)
+                            ctx.beginPath()
+                            ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2, true)
+                            ctx.closePath()
+                            ctx.fill()
+                            ctx.beginPath()
+                            ctx.moveTo(xy[0], xy[1] - 3)
+                            ctx.lineTo(...xy)
                         } else {
-                            ctx.lineTo(...el)
+                            ctx.lineTo(...xy)
                         }
 
                         if (index === len - 1) {
-                            ctx.lineTo(el[0], el[1] + 3)
+                            ctx.lineTo(xy[0], xy[1] + 3)
+                            ctx.closePath()
                             ctx.stroke()
                             ctx.beginPath()
-                            ctx.arc(el[0], el[1] + 8, 6, 0, Math.PI * 2)
-                            ctx.fillStyle = color
+                            ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
                             ctx.closePath()
                             ctx.fill()
                         }
