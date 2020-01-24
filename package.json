@@ -14,26 +14,26 @@
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
     "license": "ISC",
     "devDependencies": {
-        "@material-ui/core": "^4.8.3",
-        "@material-ui/icons": "^4.5.1",
         "@types/node": "^13.1.6",
         "@types/react": "^16.9.17",
         "@types/react-dom": "^16.9.4",
         "@typescript-eslint/eslint-plugin": "^2.16.0",
         "@typescript-eslint/parser": "^2.16.0",
-        "clsx": "^1.0.4",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.9.0",
         "eslint-loader": "^3.0.3",
         "eslint-plugin-prettier": "^3.1.2",
         "eslint-plugin-react": "^7.17.0",
         "prettier": "1.19.1",
-        "react-app-polyfill": "^1.0.5",
         "typescript": "^3.7.4"
     },
     "dependencies": {
+        "@material-ui/core": "^4.9.0",
+        "@material-ui/icons": "^4.5.1",
+        "clsx": "^1.0.4",
         "next": "^9.1.7",
         "react": "^16.12.0",
+        "react-app-polyfill": "^1.0.5",
         "react-dom": "^16.12.0"
     }
 }
