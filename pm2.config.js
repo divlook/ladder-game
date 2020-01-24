@@ -17,6 +17,10 @@ module.exports = {
             env_production: {
                 NODE_ENV: 'production',
             },
+            time: true,
+            error_file: '/dev/null',
+            out_file: '/dev/null',
+            log_file: './log/fe.log',
         },
     ],
 
