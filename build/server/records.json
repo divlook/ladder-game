@@ -1,0 +1,35 @@
+{
+  "modules": {
+    "byIdentifier": {
+      "multi private-next-pages/_app.tsx": 0,
+      "multi private-next-pages/_document.tsx": 1,
+      "multi private-next-pages/index.tsx": 2,
+      "multi next/dist/pages/_error": 3
+    },
+    "usedIds": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    }
+  },
+  "chunks": {
+    "byName": {
+      "init-server.js": 0,
+      "on-error-server.js": 1,
+      "static/MBkxpOjEKQatTvPl2_Qa2/pages/_app.js": 2,
+      "static/MBkxpOjEKQatTvPl2_Qa2/pages/_document.js": 3,
+      "static/MBkxpOjEKQatTvPl2_Qa2/pages/_error.js": 4,
+      "static/MBkxpOjEKQatTvPl2_Qa2/pages/index.js": 5
+    },
+    "bySource": {},
+    "usedIds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}
