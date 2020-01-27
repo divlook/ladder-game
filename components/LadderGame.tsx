@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
-import { Typography, Box, Grid, makeStyles, Button } from '@material-ui/core'
+import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
 import { useLifecycle } from '~/hooks/lifecycle'
+import { MapData, MidLine, State } from '~/components/LadderGame.interface'
+import { colors, useStyles } from '~/components/LadderGame.style'
 
 /*
 TODO:
@@ -26,48 +28,10 @@ resultLine이 그려질 때 애니메이션 추가
 호스트가 게임 생성
 다른 유저들이 게임에 참가
 
+FIXME:
+useReducer로 변경하고 파일 분리
+methods는 useCallback 또는 action으로 분리
 */
-
-export interface MapData {
-    uid: number
-    el: HTMLDivElement | null
-    x: number
-    y: number
-    isHandle: boolean
-    isLinked: boolean
-    prevBlock?: MapData | null
-    nextBlock?: MapData | null
-    linkedBlock?: MapData | null
-    midLine?: MidLine | null
-}
-
-export interface MidLine {
-    uid: number
-    el: HTMLDivElement | null
-    blocks: MapData[]
-    style: any
-}
-
-export interface State {
-    isPaintingLadder: boolean
-    isPaintedLadder: boolean
-    mapData: MapData[][]
-    mapWidth: number
-    mapHeight: number
-    ladderBlockCnt: number
-    midLineData: MidLine[]
-    generatingMidLinePoint?: MapData | null
-    /**
-     * 게임 단계
-     * - 0: 시작전
-     * - 1: 진행중
-     * - 2: 완료
-     */
-    gameStep: number
-    completedLineIndexs: number[]
-    colorIndex: number
-    rewards: string[]
-}
 
 export const defaultOption = {
     mapMinHeight: 300,
@@ -87,129 +51,6 @@ export const initialState: State = {
     colorIndex: 0,
     rewards: [],
 }
-
-const useStyles = (state: State) =>
-    makeStyles(theme => ({
-        root: {
-            width: '100%',
-            minHeight: state.mapHeight,
-            position: 'relative',
-        },
-        ladders: {
-            position: 'relative',
-            zIndex: 1,
-            width: '100%',
-            minHeight: state.mapHeight,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-        },
-        ladderContainer: {
-            width: 'auto',
-            justifyContent: 'space-between',
-            flexWrap: 'nowrap',
-        },
-        ladderItem: {
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column',
-            minWidth: 80,
-        },
-        ladderItemHeader: {
-            textAlign: 'center',
-            marginBottom: theme.spacing(2),
-        },
-        ladderItemFooter: {
-            textAlign: 'center',
-            marginTop: theme.spacing(2),
-        },
-        ladderItemBlock: {
-            position: 'relative',
-            backgroundColor: '#9e7662',
-            width: 10,
-            height: 32,
-            '&:first-child': {
-                borderTopLeftRadius: 3,
-                borderTopRightRadius: 3,
-            },
-            '&:last-child': {
-                borderBottomLeftRadius: 3,
-                borderBottomRightRadius: 3,
-            },
-        },
-        ladderItemHandle: {
-            cursor: 'pointer',
-            width: 12,
-            height: 12,
-            borderRadius: 2,
-            backgroundColor: '#795548',
-            '&:hover:not(.linked), &.active': {
-                zIndex: 1,
-                boxShadow: '0 0 8px 4px rgba(255, 255, 255, 0.4), 0 0 12px 12px rgb(158, 118, 98, 0.6)',
-            },
-            '&.linked': {
-                cursor: 'no-drop',
-            },
-        },
-        ladderMidLine: {
-            display: 'none',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            zIndex: 2,
-            backgroundColor: '#795548',
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            boxShadow: '0 2px 4px 2px rgba(0, 0, 0, 0.2)',
-            cursor: 'pointer',
-        },
-        result: {
-            display: 'none',
-            position: 'absolute',
-            zIndex: 999,
-            width: '100%',
-            height: '100%',
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            '&.active': {
-                display: 'block',
-            },
-            '& canvas': {
-                position: 'absolute',
-                minWidth: '100%',
-                height: '100%',
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-            },
-        },
-        buttons: {
-            marginTop: theme.spacing(6),
-            marginBottom: theme.spacing(4),
-        },
-        buttonItem: {
-            cursor: 'pointer',
-            '&:not(:disabled)': {
-                zIndex: 1000,
-            }
-        },
-    }))
-
-const colors = [
-    '#ff8990',
-    '#f7a03e',
-    '#fed853',
-    '#38bb8e',
-    '#139367',
-    '#cef500',
-    '#ffb700',
-    '#ff008f',
-    '#00b4c4',
-    '#ff4040',
-]
 
 let __uid = 0
 
@@ -599,7 +440,9 @@ const LadderGame: React.FC<InitialState> = props => {
                                                         color="primary"
                                                         onClick={methods.playGame(xIndex)}
                                                         disabled={state.gameStep === 0 || state.completedLineIndexs.includes(xIndex)}
-                                                        >{props.players[xIndex] || `참가자 ${xIndex + 1}`}</Button>
+                                                    >
+                                                        {props.players[xIndex] || `참가자 ${xIndex + 1}`}
+                                                    </Button>
                                                 </Box>
                                                 <Box className={classes.ladderItem}>
                                                     {xVal.map((yVal, yIndex) => {
@@ -618,15 +461,9 @@ const LadderGame: React.FC<InitialState> = props => {
                                                     })}
                                                 </Box>
                                                 <Box className={classes.ladderItemFooter}>
-                                                    {state.gameStep === 0 && (
-                                                        <Typography>
-                                                            보상 {xIndex + 1}
-                                                        </Typography>
-                                                    )}
+                                                    {state.gameStep === 0 && <Typography>보상 {xIndex + 1}</Typography>}
                                                     {state.gameStep > 0 && (
-                                                        <Typography>
-                                                            {state.rewards[xIndex] || `보상 ${xIndex + 1}`}
-                                                        </Typography>
+                                                        <Typography>{state.rewards[xIndex] || `보상 ${xIndex + 1}`}</Typography>
                                                     )}
                                                 </Box>
                                             </Grid>
