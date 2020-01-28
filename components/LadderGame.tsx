@@ -523,7 +523,6 @@ const LadderGame: React.FC<InitialState> = props => {
                                             color="secondary"
                                             size="large"
                                             onClick={methods.reGame}
-                                            disabled={state.gameStep < 2}
                                         >
                                             다시하기
                                         </Button>
