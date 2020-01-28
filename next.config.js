@@ -4,7 +4,31 @@ const path = require('path')
 const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
+    /**
+     * Build directory
+     */
     distDir: isProd ? 'build' : '.next',
+
+    /**
+     * Static HTML
+     *
+     * @see https://nextjs.org/docs/api-reference/next.config.js/exportPathMap
+     */
+    exportPathMap: async function(defaultPathMap, { dev, dir, outDir, distDir, buildId }) {
+        return {
+            // "생성될 pathname": { page: "pages의 경로", query?: InitialProps }
+            '/': { page: '/' },
+        }
+    },
+
+    /**
+     * URL 뒤에 Slash 존재 여부
+     *
+     * @see https://nextjs.org/docs/api-reference/next.config.js/exportPathMap#adding-a-trailing-slash
+     * @example
+     * exportTrailingSlash ? "/about/index.html" : "/about.html"
+     */
+    exportTrailingSlash: true,
 
     /**
      * @see https://nextjs.org/docs/api-reference/next.config.js/custom-webpack-config
