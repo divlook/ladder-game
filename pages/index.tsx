@@ -106,7 +106,7 @@ const IndexPage: NextPage = () => {
                                                         label={isError ? '숫자 2이상 20이하' : ''}
                                                         error={isError}
                                                         onChange={changeLadderQty}
-                                                        defaultValue={(!isError && store.ladderQty) || null}
+                                                        defaultValue={(!isError && store.ladderQty) || ''}
                                                     />
                                                 )
                                             }
@@ -120,7 +120,7 @@ const IndexPage: NextPage = () => {
                                                                     key={key}
                                                                     className={classes.textField}
                                                                     onChange={changeName(key)}
-                                                                    defaultValue={store.players[key] || null}
+                                                                    defaultValue={store.players[key] || ''}
                                                                 />
                                                             )
                                                         })}
@@ -137,7 +137,7 @@ const IndexPage: NextPage = () => {
                                                                     key={key}
                                                                     className={classes.textField}
                                                                     onChange={changeReward(key)}
-                                                                    defaultValue={store.rewards[key] || null}
+                                                                    defaultValue={store.rewards[key] || ''}
                                                                 />
                                                             )
                                                         })}
