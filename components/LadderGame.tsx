@@ -101,6 +101,66 @@ const LadderGame: React.FC<InitialState> = props => {
             state.isPaintedLadder = true
             setState(state)
         },
+        calcMidLineStyle: (startPoint: MapData, endPoint: MapData) => {
+            const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
+            const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
+            const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
+
+            const leftPoint = toTheRight ? startPoint : endPoint
+            const rightPoint = toTheRight ? endPoint : startPoint
+
+            if (leftPoint?.el !== null && rightPoint?.el !== null) {
+                const defaultMidLineOption = {
+                    width: 8,
+                }
+                const style = {
+                    display: 'block',
+                    top: 0,
+                    left: 0,
+                    width: defaultMidLineOption.width,
+                    height: defaultMidLineOption.width,
+                    transform: 'rotate(0deg)',
+                }
+
+                if (toTheSameTop) {
+                    const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                    const addLine = leftPoint.el.offsetWidth - margin * 2
+                    style.width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                    style.left = leftPoint.el.offsetLeft + margin
+                    style.top = leftPoint.el.offsetTop + margin
+                } else {
+                    const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                    const addLine = leftPoint.el.offsetWidth - margin * 2
+                    const width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                    const height = Math.abs(leftPoint.el.offsetTop - rightPoint.el.offsetTop) + addLine
+                    const angle = (Math.atan(height / width) * 180) / Math.PI
+
+                    style.width = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+                    style.left = leftPoint.el.offsetLeft - (style.width - width) / 2
+                    style.top = leftPoint.el.offsetTop + height / 2
+                    style.transform = `rotate(${angle}deg)`
+
+                    // 방향에 따라 추가 연산
+                    if ((!toTheBottom && toTheRight) || (!toTheRight && toTheBottom)) {
+                        style.top += height * -1
+                        style.transform = `rotate(${angle * -1}deg)`
+                    }
+                    if ((toTheBottom && toTheRight) || (!toTheBottom && !toTheRight)) {
+                        style.top -= defaultMidLineOption.width / 2
+                    }
+                    if ((!toTheBottom && toTheRight) || (toTheBottom && !toTheRight)) {
+                        style.top += defaultMidLineOption.width / 2
+                    }
+
+                    // margin 추가
+                    style.left += margin
+                    style.top += margin
+                }
+
+                return style
+            }
+            return undefined
+        },
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
             console.group('item')
@@ -143,82 +203,28 @@ const LadderGame: React.FC<InitialState> = props => {
 
             // midLine을 그린다
             if (state.generatingMidLinePoint) {
-                const defaultMidLineOption = {
-                    width: 8,
+                const midLine: MidLine = {
+                    uid: ++__uid,
+                    el: null,
+                    blocks: [],
+                    style: undefined,
                 }
 
                 const startPoint = state.generatingMidLinePoint
                 const endPoint = state.mapData[x][y]
 
-                const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
-                const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
-                const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
+                // startPoint, endPoint 서로 연결
+                startPoint.isLinked = true
+                endPoint.isLinked = true
+                startPoint.linkedBlock = endPoint
+                endPoint.linkedBlock = startPoint
+                startPoint.midLine = midLine
+                endPoint.midLine = midLine
+                midLine.blocks = [startPoint, endPoint]
+                midLine.style = methods.calcMidLineStyle(startPoint, endPoint)
 
-                const leftPoint = toTheRight ? startPoint : endPoint
-                const rightPoint = toTheRight ? endPoint : startPoint
-
-                if (leftPoint?.el !== null && rightPoint?.el !== null) {
-                    const midLine: MidLine = {
-                        uid: ++__uid,
-                        el: null,
-                        blocks: [],
-                        style: {
-                            display: 'block',
-                            top: 0,
-                            left: 0,
-                            width: defaultMidLineOption.width,
-                            height: defaultMidLineOption.width,
-                            transform: 'rotate(0deg)',
-                        },
-                    }
-
-                    if (toTheSameTop) {
-                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
-                        const addLine = leftPoint.el.offsetWidth - margin * 2
-                        midLine.style.width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
-                        midLine.style.left = leftPoint.el.offsetLeft + margin
-                        midLine.style.top = leftPoint.el.offsetTop + margin
-                    } else {
-                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
-                        const addLine = leftPoint.el.offsetWidth - margin * 2
-                        const width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
-                        const height = Math.abs(leftPoint.el.offsetTop - rightPoint.el.offsetTop) + addLine
-                        const angle = (Math.atan(height / width) * 180) / Math.PI
-
-                        midLine.style.width = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
-                        midLine.style.left = leftPoint.el.offsetLeft - (midLine.style.width - width) / 2
-                        midLine.style.top = leftPoint.el.offsetTop + height / 2
-                        midLine.style.transform = `rotate(${angle}deg)`
-
-                        // 방향에 따라 추가 연산
-                        if ((!toTheBottom && toTheRight) || (!toTheRight && toTheBottom)) {
-                            midLine.style.top += height * -1
-                            midLine.style.transform = `rotate(${angle * -1}deg)`
-                        }
-                        if ((toTheBottom && toTheRight) || (!toTheBottom && !toTheRight)) {
-                            midLine.style.top -= defaultMidLineOption.width / 2
-                        }
-                        if ((!toTheBottom && toTheRight) || (toTheBottom && !toTheRight)) {
-                            midLine.style.top += defaultMidLineOption.width / 2
-                        }
-
-                        // margin 추가
-                        midLine.style.left += margin
-                        midLine.style.top += margin
-                    }
-
-                    // startPoint, endPoint 서로 연결
-                    startPoint.isLinked = true
-                    endPoint.isLinked = true
-                    startPoint.linkedBlock = endPoint
-                    endPoint.linkedBlock = startPoint
-                    startPoint.midLine = midLine
-                    endPoint.midLine = midLine
-                    midLine.blocks = [startPoint, endPoint]
-
-                    // state에 저장
-                    state.midLineData.push(midLine)
-                }
+                // state에 저장
+                state.midLineData.push(midLine)
             }
 
             // 수정사항 반영 및 generatingMidLinePoint 초기화
@@ -256,7 +262,6 @@ const LadderGame: React.FC<InitialState> = props => {
                 midLine: null,
             }
         },
-        handleSelectstart: e => void e.preventDefault(),
         playGame: key => () => {
             if (resultRef.current && !state.completedLineIndexs.includes(key)) {
                 const canvas = document.createElement('canvas')
@@ -391,12 +396,25 @@ const LadderGame: React.FC<InitialState> = props => {
 
             setState({ ...state })
         },
+        handleOrientationchange: () => {
+            if (methods.calcMapSize()) {
+                // TODO: 회전시 midLine의 위치와 canvas가 갱신은 되나 게임이 처음부터 다시 시작되는 버그가 생김
+                setState(prevState => ({
+                    ...prevState,
+                    midLineData: state.midLineData.map(midLine => {
+                        midLine.style = methods.calcMidLineStyle(midLine.blocks[0], midLine.blocks[1])
+                        return midLine
+                    }),
+                }))
+            }
+        },
     }
 
     useCreated(async () => {
         methods.paintLadder()
 
-        mapRef.current?.addEventListener('selectstart', methods.handleSelectstart)
+        window.addEventListener('orientationchange', methods.handleOrientationchange)
+        // window.addEventListener('resize', () => { console.log('resize') })
     })
 
     useMounted(() => {
@@ -406,7 +424,8 @@ const LadderGame: React.FC<InitialState> = props => {
     })
 
     useBeforeDestroy(() => {
-        mapRef.current?.removeEventListener('selectstart', methods.handleSelectstart)
+        window.removeEventListener('orientationchange', methods.handleOrientationchange)
+
         state.isPaintingLadder = false
         state.isPaintedLadder = false
         state.mapData.splice(0, state.mapData.length)

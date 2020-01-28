@@ -15,7 +15,7 @@ export interface MidLine {
     uid: number
     el: HTMLDivElement | null
     blocks: MapData[]
-    style: any
+    style?: any
 }
 
 export interface State {
