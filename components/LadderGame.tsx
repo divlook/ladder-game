@@ -369,7 +369,7 @@ const LadderGame: React.FC<InitialState> = props => {
             state.rewards.sort(() => Math.random() - Math.random())
             setState({ ...state })
         },
-        reloadGame() {
+        reGame() {
             const prevMidLineData = state.midLineData.splice(0, state.midLineData.length)
             state.generatingMidLinePoint = null
             state.gameStep = 0
@@ -503,7 +503,7 @@ const LadderGame: React.FC<InitialState> = props => {
                                             variant="contained"
                                             color="secondary"
                                             size="large"
-                                            onClick={methods.reloadGame}
+                                            onClick={methods.reGame}
                                             disabled={state.gameStep < 2}
                                         >
                                             다시하기
