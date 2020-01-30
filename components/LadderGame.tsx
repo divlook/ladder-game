@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
-import { useLifecycle } from '~/hooks/lifecycle'
+import { useLifecycle } from '~/hooks/Lifecycle'
 import { MapData, MidLine, State } from '~/components/LadderGame.interface'
 import { colors, useStyles } from '~/components/LadderGame.style'
 
