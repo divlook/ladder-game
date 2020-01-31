@@ -66,6 +66,7 @@ const IndexPage: NextPage = () => {
     }
 
     const changeLadderQty = e => {
+        if (Number(e?.target?.value) > 20) e.target.value = 20
         dispatch(IndexAction.changeLadderQty(Number(e?.target?.value)))
     }
 
