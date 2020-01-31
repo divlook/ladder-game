@@ -103,6 +103,7 @@ const IndexPage: NextPage = () => {
                                                 return (
                                                     <TextField
                                                         className={classes.textField}
+                                                        type="number"
                                                         label={isError ? '숫자 2이상 20이하' : ''}
                                                         error={isError}
                                                         onChange={changeLadderQty}
