@@ -8,7 +8,8 @@
         "build": "next build",
         "start": "next start",
         "type-check": "tsc",
-        "lint": "eslint '*/**/*.{js,ts,tsx}'"
+        "lint": "eslint '*/**/*.{js,ts,tsx}'",
+        "deploy": "pm2 deploy pm2.config.js production"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
