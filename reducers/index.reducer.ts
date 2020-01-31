@@ -18,10 +18,10 @@ export default (state: types.InitialState, action: types.Action) => {
 
         case types.CHANGE_LADDER_QTY: {
             const { ladderQty } = action.payload
-
-            state.ladderQty = ladderQty
-
-            return state
+            return {
+                ...state,
+                ladderQty,
+            }
         }
 
         case types.CHANGE_NAME: {
