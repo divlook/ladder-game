@@ -33,6 +33,108 @@ resultLine이 그려질 때 애니메이션 추가
 
 */
 
+interface ResultCanvasProps {
+    index: number
+    width: number
+    height: number
+    map: MapData[][]
+}
+const ResultCanvas: React.FC<ResultCanvasProps> = props => {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const { width, height, index, map } = props
+
+    function drawCanvas(key) {
+        if (!canvasRef.current) return
+
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
+        canvas.width = width
+        canvas.height = height
+
+        if (!ctx) return
+
+        const coordinates: [number, number][] = []
+        const color = colors[key % colors.length]
+
+        let prevBlockUid = 0
+        let current: MapData | null = map[key][0]
+
+        ctx.lineWidth = 3
+        ctx.lineJoin = 'round'
+        ctx.strokeStyle = color
+        ctx.fillStyle = color
+
+        while (current !== null) {
+            let next: MapData | null = null
+            if (current.nextBlock) {
+                if (coordinates.length === 0) {
+                    // 시작
+                    coordinates.push([
+                        (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                        current.el?.offsetTop || 0,
+                    ])
+
+                    next = current.nextBlock
+                } else if (current.linkedBlock) {
+                    if (current.isHandle) {
+                        coordinates.push([
+                            (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                            (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
+                        ])
+                    }
+
+                    if (current.linkedBlock.uid === prevBlockUid) {
+                        // midLine 이동 후
+                        next = current.nextBlock
+                    } else {
+                        // midLine 이동 전
+                        next = current.linkedBlock
+                    }
+                } else {
+                    // 일반 block
+                    next = current.nextBlock
+                }
+            } else {
+                // 끝
+                coordinates.push([
+                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                    (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
+                ])
+            }
+
+            prevBlockUid = current?.uid || 0
+            current = next
+        }
+
+        for (let index = 0, len = coordinates.length; index < len; index++) {
+            const xy = coordinates[index]
+
+            if (index === 0) {
+                ctx.beginPath()
+                ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
+                ctx.closePath()
+                ctx.fill()
+                ctx.beginPath()
+                ctx.moveTo(xy[0], xy[1] - 3)
+                ctx.lineTo(...xy)
+            } else {
+                ctx.lineTo(...xy)
+            }
+
+            if (index === len - 1) {
+                ctx.lineTo(xy[0], xy[1] + 3)
+                ctx.stroke()
+                ctx.beginPath()
+                ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
+                ctx.closePath()
+                ctx.fill()
+            }
+        }
+    }
+
+    return <canvas ref={canvasRef} width={width} height={height} />
+}
+
 const LadderGame: React.FC<InitialState> = props => {
     const { useCreated, useMounted, useBeforeDestroy } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
     const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState)
@@ -55,66 +157,69 @@ const LadderGame: React.FC<InitialState> = props => {
 
             dispatch(actions.createMapData(ladderQty))
         },
-        calcMidLineStyle: useCallback((startPoint: MapData, endPoint: MapData) => {
-            const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
-            const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
-            const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
+        calcMidLineStyle: useCallback(
+            (startPoint: MapData, endPoint: MapData) => {
+                const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
+                const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
+                const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
 
-            const leftPoint = toTheRight ? startPoint : endPoint
-            const rightPoint = toTheRight ? endPoint : startPoint
+                const leftPoint = toTheRight ? startPoint : endPoint
+                const rightPoint = toTheRight ? endPoint : startPoint
 
-            if (leftPoint?.el !== null && rightPoint?.el !== null) {
-                const defaultMidLineOption = {
-                    width: 8,
-                }
-                const style = {
-                    display: 'block',
-                    top: 0,
-                    left: 0,
-                    width: defaultMidLineOption.width,
-                    height: defaultMidLineOption.width,
-                    transform: 'rotate(0deg)',
-                }
-
-                if (toTheSameTop) {
-                    const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
-                    const addLine = leftPoint.el.offsetWidth - margin * 2
-                    style.width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
-                    style.left = leftPoint.el.offsetLeft + margin
-                    style.top = leftPoint.el.offsetTop + margin
-                } else {
-                    const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
-                    const addLine = leftPoint.el.offsetWidth - margin * 2
-                    const width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
-                    const height = Math.abs(leftPoint.el.offsetTop - rightPoint.el.offsetTop) + addLine
-                    const angle = (Math.atan(height / width) * 180) / Math.PI
-
-                    style.width = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
-                    style.left = leftPoint.el.offsetLeft - (style.width - width) / 2
-                    style.top = leftPoint.el.offsetTop + height / 2
-                    style.transform = `rotate(${angle}deg)`
-
-                    // 방향에 따라 추가 연산
-                    if ((!toTheBottom && toTheRight) || (!toTheRight && toTheBottom)) {
-                        style.top += height * -1
-                        style.transform = `rotate(${angle * -1}deg)`
+                if (leftPoint?.el !== null && rightPoint?.el !== null) {
+                    const defaultMidLineOption = {
+                        width: 8,
                     }
-                    if ((toTheBottom && toTheRight) || (!toTheBottom && !toTheRight)) {
-                        style.top -= defaultMidLineOption.width / 2
-                    }
-                    if ((!toTheBottom && toTheRight) || (toTheBottom && !toTheRight)) {
-                        style.top += defaultMidLineOption.width / 2
+                    const style = {
+                        display: 'block',
+                        top: 0,
+                        left: 0,
+                        width: defaultMidLineOption.width,
+                        height: defaultMidLineOption.width,
+                        transform: 'rotate(0deg)',
                     }
 
-                    // margin 추가
-                    style.left += margin
-                    style.top += margin
-                }
+                    if (toTheSameTop) {
+                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                        const addLine = leftPoint.el.offsetWidth - margin * 2
+                        style.width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                        style.left = leftPoint.el.offsetLeft + margin
+                        style.top = leftPoint.el.offsetTop + margin
+                    } else {
+                        const margin = (leftPoint.el.offsetWidth - defaultMidLineOption.width) / 2
+                        const addLine = leftPoint.el.offsetWidth - margin * 2
+                        const width = Math.abs(leftPoint.el.offsetLeft - rightPoint.el.offsetLeft) + addLine
+                        const height = Math.abs(leftPoint.el.offsetTop - rightPoint.el.offsetTop) + addLine
+                        const angle = (Math.atan(height / width) * 180) / Math.PI
 
-                return style
-            }
-            return undefined
-        }, [state.mapWidth, state.mapHeight]),
+                        style.width = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+                        style.left = leftPoint.el.offsetLeft - (style.width - width) / 2
+                        style.top = leftPoint.el.offsetTop + height / 2
+                        style.transform = `rotate(${angle}deg)`
+
+                        // 방향에 따라 추가 연산
+                        if ((!toTheBottom && toTheRight) || (!toTheRight && toTheBottom)) {
+                            style.top += height * -1
+                            style.transform = `rotate(${angle * -1}deg)`
+                        }
+                        if ((toTheBottom && toTheRight) || (!toTheBottom && !toTheRight)) {
+                            style.top -= defaultMidLineOption.width / 2
+                        }
+                        if ((!toTheBottom && toTheRight) || (toTheBottom && !toTheRight)) {
+                            style.top += defaultMidLineOption.width / 2
+                        }
+
+                        // margin 추가
+                        style.left += margin
+                        style.top += margin
+                    }
+
+                    return style
+                }
+                return undefined
+            },
+            [state.mapWidth, state.mapHeight]
+        ),
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
             console.group('item')
@@ -157,110 +262,32 @@ const LadderGame: React.FC<InitialState> = props => {
         bindEl: data => el => {
             data.el = el
         },
-        playGame: key => () => {
-            if (resultRef.current && !state.completedLineIndexs.includes(key)) {
-                const canvas = document.createElement('canvas')
-                const ctx = canvas.getContext('2d')
-                canvas.width = state.mapWidth
-                canvas.height = state.mapHeight
+        playGame: function(key) {
+            return () => {
+                if (resultRef.current && !state.completedLineIndexs.includes(key)) {
 
-                if (!ctx) return
+                    // TODO: colorIndex 삭제 필요
+                    // TODO: canvas 분리 필요
+                    // const canvas = document.createElement('canvas')
 
-                const coordinates: [number, number][] = []
-                const color = colors[state.colorIndex % colors.length]
+                    // resultRef.current.append(canvas)
+                    dispatch(actions.playGame(key))
 
-                let prevBlockUid = 0
-                let current: MapData | null = state.mapData[key][0]
-
-                ctx.lineWidth = 3
-                ctx.lineJoin = 'round'
-                ctx.strokeStyle = color
-                ctx.fillStyle = color
-
-                while (current !== null) {
-                    let next: MapData | null = null
-                    if (current.nextBlock) {
-                        if (coordinates.length === 0) {
-                            // 시작
-                            coordinates.push([
-                                (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                                current.el?.offsetTop || 0,
-                            ])
-
-                            next = current.nextBlock
-                        } else if (current.linkedBlock) {
-                            if (current.isHandle) {
-                                coordinates.push([
-                                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                                    (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
-                                ])
-                            }
-
-                            if (current.linkedBlock.uid === prevBlockUid) {
-                                // midLine 이동 후
-                                next = current.nextBlock
-                            } else {
-                                // midLine 이동 전
-                                next = current.linkedBlock
-                            }
-                        } else {
-                            // 일반 block
-                            next = current.nextBlock
-                        }
-                    } else {
-                        // 끝
-                        coordinates.push([
-                            (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                            (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
-                        ])
-                    }
-
-                    prevBlockUid = current?.uid || 0
-                    current = next
+                    return true
+                } else {
+                    return false
                 }
-
-                for (let index = 0, len = coordinates.length; index < len; index++) {
-                    const xy = coordinates[index]
-
-                    if (index === 0) {
-                        ctx.beginPath()
-                        ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
-                        ctx.closePath()
-                        ctx.fill()
-                        ctx.beginPath()
-                        ctx.moveTo(xy[0], xy[1] - 3)
-                        ctx.lineTo(...xy)
-                    } else {
-                        ctx.lineTo(...xy)
-                    }
-
-                    if (index === len - 1) {
-                        ctx.lineTo(xy[0], xy[1] + 3)
-                        ctx.stroke()
-                        ctx.beginPath()
-                        ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
-                        ctx.closePath()
-                        ctx.fill()
-                    }
-                }
-
-                resultRef.current.append(canvas)
-                dispatch(actions.playGame(key))
-
-                return true
-            } else {
-                return false
             }
         },
         doReady() {
             dispatch(actions.prepareGame(props.rewards))
         },
         reGame() {
-            if (resultRef.current) {
-                while (resultRef.current.firstChild) {
-                    resultRef.current.removeChild(resultRef.current.firstChild)
-                }
-            }
+            // if (resultRef.current) {
+            //     while (resultRef.current.firstChild) {
+            //         resultRef.current.removeChild(resultRef.current.firstChild)
+            //     }
+            // }
 
             dispatch(actions.reGame())
         },
@@ -347,7 +374,19 @@ const LadderGame: React.FC<InitialState> = props => {
                                             />
                                         )
                                     })}
-                                    <div ref={resultRef} className={clsx(classes.result, { active: state.gameStep > 0 })} />
+                                    <div ref={resultRef} className={clsx(classes.result, { active: state.gameStep > 0 })}>
+                                        {state.completedLineIndexs.map((lineIndex, index) => {
+                                            return (
+                                                <ResultCanvas
+                                                    key={lineIndex}
+                                                    index={index}
+                                                    width={state.mapWidth}
+                                                    height={state.mapHeight}
+                                                    map={state.mapData}
+                                                />
+                                            )
+                                        })}
+                                    </div>
                                 </Grid>
                             </div>
 
