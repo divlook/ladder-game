@@ -15,12 +15,10 @@ export interface MidLine {
     uid: number
     el: HTMLDivElement | null
     blocks: MapData[]
-    style?: any
 }
 
 export interface State {
-    isPaintingLadder: boolean
-    isPaintedLadder: boolean
+    hasMapData: boolean
     mapData: MapData[][]
     mapWidth: number
     mapHeight: number

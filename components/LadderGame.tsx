@@ -1,10 +1,13 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useReducer, useCallback } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
 import { useLifecycle } from '~/hooks/Lifecycle'
-import { MapData, MidLine, State } from '~/components/LadderGame.interface'
+import { MapData } from '~/components/LadderGame.interface'
 import { colors, useStyles } from '~/components/LadderGame.style'
+import { LadderGameReducer, LadderGameInitialState } from '~/components/LadderGame.reducer'
+import * as actions from '~/components/LadderGame.action'
+import { throttling } from '~/lib/utils'
 
 /*
 TODO:
@@ -28,35 +31,11 @@ resultLine이 그려질 때 애니메이션 추가
 호스트가 게임 생성
 다른 유저들이 게임에 참가
 
-FIXME:
-useReducer로 변경하고 파일 분리
-methods는 useCallback 또는 action으로 분리
 */
-
-export const defaultOption = {
-    mapMinHeight: 300,
-}
-
-export const initialState: State = {
-    isPaintingLadder: false,
-    isPaintedLadder: false,
-    mapData: [],
-    mapWidth: 0,
-    mapHeight: defaultOption.mapMinHeight,
-    ladderBlockCnt: 21,
-    midLineData: [],
-    generatingMidLinePoint: null,
-    gameStep: 0,
-    completedLineIndexs: [],
-    colorIndex: 0,
-    rewards: [],
-}
-
-let __uid = 0
 
 const LadderGame: React.FC<InitialState> = props => {
     const { useCreated, useMounted, useBeforeDestroy } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
-    const [state, setState] = useState(initialState)
+    const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState)
     const classes = useStyles(state)()
 
     const mapRef = useRef<HTMLDivElement>(null)
@@ -65,9 +44,7 @@ const LadderGame: React.FC<InitialState> = props => {
     const methods = {
         calcMapSize() {
             if (mapRef.current) {
-                state.mapWidth = mapRef.current?.scrollWidth || 0
-                state.mapHeight = Math.max(state.mapHeight, mapRef.current?.scrollHeight || 0)
-                setState(state)
+                dispatch(actions.updateMapSize(mapRef.current?.scrollWidth, mapRef.current?.scrollHeight))
                 return true
             } else {
                 return false
@@ -75,33 +52,10 @@ const LadderGame: React.FC<InitialState> = props => {
         },
         paintLadder() {
             const { ladderQty } = props
-            const { mapData } = state
 
-            state.isPaintingLadder = true
-
-            for (let x = 0; x < ladderQty; x++) {
-                mapData[x] = []
-                for (let y = 0; y < state.ladderBlockCnt; y++) {
-                    mapData[x][y] = methods.createMapData(x, y)
-
-                    if (y > 0) {
-                        const prev = mapData[x][y - 1]
-                        prev.nextBlock = mapData[x][y]
-                        mapData[x][y].prevBlock = prev
-                    }
-
-                    if (y > 0 && y < state.ladderBlockCnt - 1) {
-                        mapData[x][y].isHandle = y % 2 !== 0
-                    }
-                }
-            }
-
-            state.mapData = mapData
-            state.isPaintingLadder = false
-            state.isPaintedLadder = true
-            setState(state)
+            dispatch(actions.createMapData(ladderQty))
         },
-        calcMidLineStyle: (startPoint: MapData, endPoint: MapData) => {
+        calcMidLineStyle: useCallback((startPoint: MapData, endPoint: MapData) => {
             const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
             const toTheBottom = (startPoint?.el?.offsetTop || 0) < (endPoint?.el?.offsetTop || 0)
             const toTheRight = (startPoint?.el?.offsetLeft || 0) < (endPoint?.el?.offsetLeft || 0)
@@ -160,7 +114,7 @@ const LadderGame: React.FC<InitialState> = props => {
                 return style
             }
             return undefined
-        },
+        }, [state.mapWidth, state.mapHeight]),
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
             console.group('item')
@@ -176,91 +130,32 @@ const LadderGame: React.FC<InitialState> = props => {
 
             // 같은 block을 클릭하면 취소된다
             if (state.mapData[x][y] === state.generatingMidLinePoint) {
-                setState({
-                    ...state,
-                    generatingMidLinePoint: null,
-                })
+                dispatch(actions.cancelGeneratingMidline())
                 return
             }
 
             // 같은 라인의 block을 클릭하면 취소된다
             if (x === state.generatingMidLinePoint?.x) {
-                setState({
-                    ...state,
-                    generatingMidLinePoint: null,
-                })
+                dispatch(actions.cancelGeneratingMidline())
                 return
             }
 
             // midLine 시작점을 저장한다
             if (!state.generatingMidLinePoint) {
-                setState({
-                    ...state,
-                    generatingMidLinePoint: state.mapData[x][y],
-                })
+                dispatch(actions.startGeneratingMidline(state.mapData[x][y]))
                 return
             }
 
             // midLine을 그린다
             if (state.generatingMidLinePoint) {
-                const midLine: MidLine = {
-                    uid: ++__uid,
-                    el: null,
-                    blocks: [],
-                    style: undefined,
-                }
-
-                const startPoint = state.generatingMidLinePoint
-                const endPoint = state.mapData[x][y]
-
-                // startPoint, endPoint 서로 연결
-                startPoint.isLinked = true
-                endPoint.isLinked = true
-                startPoint.linkedBlock = endPoint
-                endPoint.linkedBlock = startPoint
-                startPoint.midLine = midLine
-                endPoint.midLine = midLine
-                midLine.blocks = [startPoint, endPoint]
-                midLine.style = methods.calcMidLineStyle(startPoint, endPoint)
-
-                // state에 저장
-                state.midLineData.push(midLine)
+                dispatch(actions.finishGeneratingMidline(state.mapData[x][y]))
             }
-
-            // 수정사항 반영 및 generatingMidLinePoint 초기화
-            setState({
-                ...state,
-                generatingMidLinePoint: null,
-            })
         },
-        cutMidLine: (midLine: MidLine) => () => {
-            midLine.blocks.forEach(row => {
-                row.isLinked = false
-                row.linkedBlock = null
-                row.midLine = null
-            })
-
-            const midLineIndex = state.midLineData.findIndex(row => row.uid === midLine.uid)
-            state.midLineData.splice(midLineIndex, 1)
-
-            setState({ ...state })
+        cutMidLine: (midLineIndex: number) => () => {
+            dispatch(actions.removeMidline(midLineIndex))
         },
         bindEl: data => el => {
             data.el = el
-        },
-        createMapData(x, y): MapData {
-            return {
-                uid: ++__uid,
-                el: null,
-                x,
-                y,
-                isHandle: false,
-                isLinked: false,
-                prevBlock: null,
-                nextBlock: null,
-                linkedBlock: null,
-                midLine: null,
-            }
         },
         playGame: key => () => {
             if (resultRef.current && !state.completedLineIndexs.includes(key)) {
@@ -269,99 +164,88 @@ const LadderGame: React.FC<InitialState> = props => {
                 canvas.width = state.mapWidth
                 canvas.height = state.mapHeight
 
-                if (ctx) {
-                    const coordinates: [number, number][] = []
-                    const color = colors[state.colorIndex % colors.length]
+                if (!ctx) return
 
-                    let prevBlockUid = 0
-                    let current: MapData | null = state.mapData[key][0]
+                const coordinates: [number, number][] = []
+                const color = colors[state.colorIndex % colors.length]
 
-                    ctx.lineWidth = 3
-                    ctx.lineJoin = 'round'
-                    ctx.strokeStyle = color
-                    ctx.fillStyle = color
+                let prevBlockUid = 0
+                let current: MapData | null = state.mapData[key][0]
 
-                    while (current !== null) {
-                        let next: MapData | null = null
-                        if (current.nextBlock) {
-                            if (coordinates.length === 0) {
-                                // 시작
-                                coordinates.push([
-                                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                                    current.el?.offsetTop || 0,
-                                ])
+                ctx.lineWidth = 3
+                ctx.lineJoin = 'round'
+                ctx.strokeStyle = color
+                ctx.fillStyle = color
 
-                                next = current.nextBlock
-                            } else if (current.linkedBlock) {
-                                if (current.isHandle) {
-                                    coordinates.push([
-                                        (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                                        (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
-                                    ])
-                                }
-
-                                if (current.linkedBlock.uid === prevBlockUid) {
-                                    // midLine 이동 후
-                                    next = current.nextBlock
-                                } else {
-                                    // midLine 이동 전
-                                    next = current.linkedBlock
-                                }
-                            } else {
-                                // 일반 block
-                                next = current.nextBlock
-                            }
-                        } else {
-                            // 끝
+                while (current !== null) {
+                    let next: MapData | null = null
+                    if (current.nextBlock) {
+                        if (coordinates.length === 0) {
+                            // 시작
                             coordinates.push([
                                 (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                                (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
+                                current.el?.offsetTop || 0,
                             ])
-                        }
 
-                        prevBlockUid = current?.uid || 0
-                        current = next
-                    }
+                            next = current.nextBlock
+                        } else if (current.linkedBlock) {
+                            if (current.isHandle) {
+                                coordinates.push([
+                                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                                    (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
+                                ])
+                            }
 
-                    for (let index = 0, len = coordinates.length; index < len; index++) {
-                        const xy = coordinates[index]
-
-                        if (index === 0) {
-                            ctx.beginPath()
-                            ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
-                            ctx.closePath()
-                            ctx.fill()
-                            ctx.beginPath()
-                            ctx.moveTo(xy[0], xy[1] - 3)
-                            ctx.lineTo(...xy)
+                            if (current.linkedBlock.uid === prevBlockUid) {
+                                // midLine 이동 후
+                                next = current.nextBlock
+                            } else {
+                                // midLine 이동 전
+                                next = current.linkedBlock
+                            }
                         } else {
-                            ctx.lineTo(...xy)
+                            // 일반 block
+                            next = current.nextBlock
                         }
-
-                        if (index === len - 1) {
-                            ctx.lineTo(xy[0], xy[1] + 3)
-                            ctx.stroke()
-                            ctx.beginPath()
-                            ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
-                            ctx.closePath()
-                            ctx.fill()
-                        }
+                    } else {
+                        // 끝
+                        coordinates.push([
+                            (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
+                            (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
+                        ])
                     }
 
-                    resultRef.current.append(canvas)
+                    prevBlockUid = current?.uid || 0
+                    current = next
                 }
 
-                state.colorIndex++
-                state.completedLineIndexs.push(key)
-                if (state.completedLineIndexs.length === state.mapData.length) {
-                    state.gameStep = 2
+                for (let index = 0, len = coordinates.length; index < len; index++) {
+                    const xy = coordinates[index]
+
+                    if (index === 0) {
+                        ctx.beginPath()
+                        ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
+                        ctx.closePath()
+                        ctx.fill()
+                        ctx.beginPath()
+                        ctx.moveTo(xy[0], xy[1] - 3)
+                        ctx.lineTo(...xy)
+                    } else {
+                        ctx.lineTo(...xy)
+                    }
+
+                    if (index === len - 1) {
+                        ctx.lineTo(xy[0], xy[1] + 3)
+                        ctx.stroke()
+                        ctx.beginPath()
+                        ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
+                        ctx.closePath()
+                        ctx.fill()
+                    }
                 }
 
-                setState({
-                    ...state,
-                    gameStep: state.gameStep,
-                    completedLineIndexs: state.completedLineIndexs,
-                })
+                resultRef.current.append(canvas)
+                dispatch(actions.playGame(key))
 
                 return true
             } else {
@@ -369,52 +253,26 @@ const LadderGame: React.FC<InitialState> = props => {
             }
         },
         doReady() {
-            state.gameStep = 1
-            state.rewards = [...props.rewards]
-            state.rewards.sort(() => Math.random() - Math.random())
-            setState({ ...state })
+            dispatch(actions.prepareGame(props.rewards))
         },
         reGame() {
-            const prevMidLineData = state.midLineData.splice(0, state.midLineData.length)
-            state.generatingMidLinePoint = null
-            state.gameStep = 0
-            state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
-            state.colorIndex = 0
-
-            prevMidLineData.forEach(mapData => {
-                mapData.blocks.forEach(block => {
-                    block.isLinked = false
-                    block.linkedBlock = null
-                })
-            })
-
             if (resultRef.current) {
                 while (resultRef.current.firstChild) {
                     resultRef.current.removeChild(resultRef.current.firstChild)
                 }
             }
 
-            setState({ ...state })
+            dispatch(actions.reGame())
         },
-        handleOrientationchange: () => {
-            if (methods.calcMapSize()) {
-                // TODO: 회전시 midLine의 위치와 canvas가 갱신은 되나 게임이 처음부터 다시 시작되는 버그가 생김
-                setState(prevState => ({
-                    ...prevState,
-                    midLineData: state.midLineData.map(midLine => {
-                        midLine.style = methods.calcMidLineStyle(midLine.blocks[0], midLine.blocks[1])
-                        return midLine
-                    }),
-                }))
-            }
-        },
+        handleWindowResize: throttling(() => {
+            methods.calcMapSize()
+        }),
     }
 
     useCreated(async () => {
         methods.paintLadder()
 
-        window.addEventListener('orientationchange', methods.handleOrientationchange)
-        // window.addEventListener('resize', () => { console.log('resize') })
+        window.addEventListener('resize', methods.handleWindowResize)
     })
 
     useMounted(() => {
@@ -424,27 +282,17 @@ const LadderGame: React.FC<InitialState> = props => {
     })
 
     useBeforeDestroy(() => {
-        window.removeEventListener('orientationchange', methods.handleOrientationchange)
+        window.removeEventListener('resize', methods.handleWindowResize)
 
-        state.isPaintingLadder = false
-        state.isPaintedLadder = false
-        state.mapData.splice(0, state.mapData.length)
-        state.mapWidth = 0
-        state.mapHeight = defaultOption.mapMinHeight
-        state.ladderBlockCnt = 21
-        state.midLineData.splice(0, state.midLineData.length)
-        state.generatingMidLinePoint = null
-        state.gameStep = 0
-        state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
-        state.colorIndex = 0
+        dispatch(actions.reset())
     })
 
     return (
         <div className={classes.root}>
             {(() => {
-                if (state.isPaintingLadder) {
+                if (!state.hasMapData) {
                     return <Typography>사다리가 그려지는 중 입니다. 기다려주세요.</Typography>
-                } else if (state.isPaintedLadder && !state.isPaintingLadder) {
+                } else if (state.hasMapData) {
                     return (
                         <React.Fragment>
                             <div className={classes.ladders}>
@@ -494,8 +342,8 @@ const LadderGame: React.FC<InitialState> = props => {
                                                 key={midLineIndex}
                                                 ref={methods.bindEl(midLine)}
                                                 className={classes.ladderMidLine}
-                                                style={midLine.style}
-                                                onClick={methods.cutMidLine(midLine)}
+                                                style={methods.calcMidLineStyle(midLine.blocks[0], midLine.blocks[1])}
+                                                onClick={methods.cutMidLine(midLineIndex)}
                                             />
                                         )
                                     })}
@@ -531,8 +379,6 @@ const LadderGame: React.FC<InitialState> = props => {
                             </Grid>
                         </React.Fragment>
                     )
-                } else {
-                    return null
                 }
             })()}
         </div>
