@@ -15,27 +15,27 @@
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
     "license": "ISC",
     "devDependencies": {
-        "@types/node": "^13.1.6",
-        "@types/react": "^16.9.17",
-        "@types/react-dom": "^16.9.4",
-        "@typescript-eslint/eslint-plugin": "^2.16.0",
-        "@typescript-eslint/parser": "^2.16.0",
+        "@types/node": "^13.7.0",
+        "@types/react": "^16.9.19",
+        "@types/react-dom": "^16.9.5",
+        "@typescript-eslint/eslint-plugin": "^2.19.0",
+        "@typescript-eslint/parser": "^2.19.0",
         "eslint": "^6.8.0",
-        "eslint-config-prettier": "^6.9.0",
+        "eslint-config-prettier": "^6.10.0",
         "eslint-loader": "^3.0.3",
         "eslint-plugin-prettier": "^3.1.2",
-        "eslint-plugin-react": "^7.17.0",
+        "eslint-plugin-react": "^7.18.3",
         "prettier": "1.19.1",
-        "typescript": "^3.7.4"
+        "typescript": "^3.7.5"
     },
     "dependencies": {
-        "@material-ui/core": "^4.9.0",
-        "@material-ui/icons": "^4.5.1",
-        "clsx": "^1.0.4",
+        "@material-ui/core": "^4.9.1",
+        "@material-ui/icons": "^4.9.1",
+        "clsx": "^1.1.0",
         "dotenv": "^8.2.0",
-        "next": "^9.1.7",
+        "next": "^9.2.1",
         "react": "^16.12.0",
-        "react-app-polyfill": "^1.0.5",
+        "react-app-polyfill": "^1.0.6",
         "react-dom": "^16.12.0"
     }
 }
