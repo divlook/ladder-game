@@ -4,10 +4,11 @@ import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
 import { useLifecycle } from '~/hooks/Lifecycle'
 import { MapData } from '~/components/LadderGame.interface'
-import { colors, useStyles } from '~/components/LadderGame.style'
-import { LadderGameReducer, LadderGameInitialState } from '~/components/LadderGame.reducer'
+import { useStyles } from '~/components/LadderGame.style'
+import { LadderGameReducer, LadderGameInitialState, LadderGameInitializer } from '~/components/LadderGame.reducer'
 import * as actions from '~/components/LadderGame.action'
 import { throttling } from '~/lib/utils'
+import ResultCanvas from '~/components/ResultCanvas'
 
 /*
 TODO:
@@ -33,115 +34,12 @@ resultLine이 그려질 때 애니메이션 추가
 
 */
 
-interface ResultCanvasProps {
-    index: number
-    width: number
-    height: number
-    map: MapData[][]
-}
-const ResultCanvas: React.FC<ResultCanvasProps> = props => {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const { width, height, index, map } = props
-
-    function drawCanvas(key) {
-        if (!canvasRef.current) return
-
-        const canvas = canvasRef.current
-        const ctx = canvas.getContext('2d')
-        canvas.width = width
-        canvas.height = height
-
-        if (!ctx) return
-
-        const coordinates: [number, number][] = []
-        const color = colors[key % colors.length]
-
-        let prevBlockUid = 0
-        let current: MapData | null = map[key][0]
-
-        ctx.lineWidth = 3
-        ctx.lineJoin = 'round'
-        ctx.strokeStyle = color
-        ctx.fillStyle = color
-
-        while (current !== null) {
-            let next: MapData | null = null
-            if (current.nextBlock) {
-                if (coordinates.length === 0) {
-                    // 시작
-                    coordinates.push([
-                        (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                        current.el?.offsetTop || 0,
-                    ])
-
-                    next = current.nextBlock
-                } else if (current.linkedBlock) {
-                    if (current.isHandle) {
-                        coordinates.push([
-                            (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                            (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - ctx.lineWidth) / 2,
-                        ])
-                    }
-
-                    if (current.linkedBlock.uid === prevBlockUid) {
-                        // midLine 이동 후
-                        next = current.nextBlock
-                    } else {
-                        // midLine 이동 전
-                        next = current.linkedBlock
-                    }
-                } else {
-                    // 일반 block
-                    next = current.nextBlock
-                }
-            } else {
-                // 끝
-                coordinates.push([
-                    (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - ctx.lineWidth) / 2,
-                    (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
-                ])
-            }
-
-            prevBlockUid = current?.uid || 0
-            current = next
-        }
-
-        for (let index = 0, len = coordinates.length; index < len; index++) {
-            const xy = coordinates[index]
-
-            if (index === 0) {
-                ctx.beginPath()
-                ctx.arc(xy[0], xy[1] - 8, 6, 0, Math.PI * 2)
-                ctx.closePath()
-                ctx.fill()
-                ctx.beginPath()
-                ctx.moveTo(xy[0], xy[1] - 3)
-                ctx.lineTo(...xy)
-            } else {
-                ctx.lineTo(...xy)
-            }
-
-            if (index === len - 1) {
-                ctx.lineTo(xy[0], xy[1] + 3)
-                ctx.stroke()
-                ctx.beginPath()
-                ctx.arc(xy[0], xy[1] + 8, 6, 0, Math.PI * 2)
-                ctx.closePath()
-                ctx.fill()
-            }
-        }
-    }
-
-    return <canvas ref={canvasRef} width={width} height={height} />
-}
-
 const LadderGame: React.FC<InitialState> = props => {
     const { useCreated, useMounted, useBeforeDestroy } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
-    const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState)
+    const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState, LadderGameInitializer)
     const classes = useStyles(state)()
 
     const mapRef = useRef<HTMLDivElement>(null)
-    const resultRef = useRef<HTMLDivElement>(null)
 
     const methods = {
         calcMapSize() {
@@ -262,33 +160,18 @@ const LadderGame: React.FC<InitialState> = props => {
         bindEl: data => el => {
             data.el = el
         },
-        playGame: function(key) {
-            return () => {
-                if (resultRef.current && !state.completedLineIndexs.includes(key)) {
-
-                    // TODO: colorIndex 삭제 필요
-                    // TODO: canvas 분리 필요
-                    // const canvas = document.createElement('canvas')
-
-                    // resultRef.current.append(canvas)
-                    dispatch(actions.playGame(key))
-
-                    return true
-                } else {
-                    return false
-                }
+        playGame: (key) => () => {
+            if (!state.completedLineIndexs.includes(key)) {
+                dispatch(actions.playGame(key))
+                return true
+            } else {
+                return false
             }
         },
         doReady() {
             dispatch(actions.prepareGame(props.rewards))
         },
         reGame() {
-            // if (resultRef.current) {
-            //     while (resultRef.current.firstChild) {
-            //         resultRef.current.removeChild(resultRef.current.firstChild)
-            //     }
-            // }
-
             dispatch(actions.reGame())
         },
         handleWindowResize: throttling(() => {
@@ -296,7 +179,7 @@ const LadderGame: React.FC<InitialState> = props => {
         }),
     }
 
-    useCreated(async () => {
+    useCreated(() => {
         methods.paintLadder()
 
         window.addEventListener('resize', methods.handleWindowResize)
@@ -310,8 +193,6 @@ const LadderGame: React.FC<InitialState> = props => {
 
     useBeforeDestroy(() => {
         window.removeEventListener('resize', methods.handleWindowResize)
-
-        dispatch(actions.reset())
     })
 
     return (
@@ -374,12 +255,12 @@ const LadderGame: React.FC<InitialState> = props => {
                                             />
                                         )
                                     })}
-                                    <div ref={resultRef} className={clsx(classes.result, { active: state.gameStep > 0 })}>
+                                    <div className={clsx(classes.result, { active: state.gameStep > 0 })}>
                                         {state.completedLineIndexs.map((lineIndex, index) => {
                                             return (
                                                 <ResultCanvas
-                                                    key={lineIndex}
-                                                    index={index}
+                                                    key={index}
+                                                    lineIndex={lineIndex}
                                                     width={state.mapWidth}
                                                     height={state.mapHeight}
                                                     map={state.mapData}

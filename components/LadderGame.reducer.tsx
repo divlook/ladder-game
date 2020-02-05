@@ -15,8 +15,14 @@ export const LadderGameInitialState: State = {
     generatingMidLinePoint: null,
     gameStep: 0,
     completedLineIndexs: [],
-    colorIndex: 0,
     rewards: [],
+}
+
+export const LadderGameInitializer = (state: State) => {
+    for (const key in state) {
+        Array.isArray(state[key]) && state[key].splice(0, state[key].length)
+    }
+    return state
 }
 
 let __uid = 0
@@ -154,7 +160,6 @@ export const LadderGameReducer = (state: State, action: {type: string, payload?:
         case types.PLAY_GAME: {
             const lineIndex = action.payload.lineIndex
 
-            state.colorIndex++
             state.completedLineIndexs.push(lineIndex)
 
             if (state.completedLineIndexs.length === state.mapData.length) {
@@ -172,7 +177,6 @@ export const LadderGameReducer = (state: State, action: {type: string, payload?:
             state.generatingMidLinePoint = null
             state.gameStep = 0
             state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
-            state.colorIndex = 0
 
             prevMidLineData.forEach(mapData => {
                 mapData.blocks.forEach(block => {
@@ -196,7 +200,6 @@ export const LadderGameReducer = (state: State, action: {type: string, payload?:
             state.generatingMidLinePoint = null
             state.gameStep = 0
             state.completedLineIndexs.splice(0, state.completedLineIndexs.length)
-            state.colorIndex = 0
 
             return {
                 ...state,

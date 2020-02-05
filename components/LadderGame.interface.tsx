@@ -33,6 +33,5 @@ export interface State {
      */
     gameStep: number
     completedLineIndexs: number[]
-    colorIndex: number
     rewards: string[]
 }
