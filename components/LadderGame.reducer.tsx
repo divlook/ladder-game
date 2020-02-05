@@ -152,7 +152,7 @@ export const LadderGameReducer = (state: State, action: {type: string, payload?:
         }
 
         case types.PLAY_GAME: {
-            const lineIndex = action.payload
+            const lineIndex = action.payload.lineIndex
 
             state.colorIndex++
             state.completedLineIndexs.push(lineIndex)
