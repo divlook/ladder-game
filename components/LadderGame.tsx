@@ -1,8 +1,7 @@
-import React, { useRef, useReducer, useCallback } from 'react'
+import React, { useRef, useReducer, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
-import { useLifecycle } from '~/hooks/Lifecycle'
 import { MapData } from '~/components/LadderGame.interface'
 import { useStyles } from '~/components/LadderGame.style'
 import { LadderGameReducer, LadderGameInitialState, LadderGameInitializer } from '~/components/LadderGame.reducer'
@@ -35,7 +34,6 @@ resultLine이 그려질 때 애니메이션 추가
 */
 
 const LadderGame: React.FC<InitialState> = props => {
-    const { useCreated, useMounted, useBeforeDestroy } = useLifecycle({ useLog: true, logLabel: 'LadderGame' })
     const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState, LadderGameInitializer)
     const classes = useStyles(state)()
 
@@ -160,7 +158,7 @@ const LadderGame: React.FC<InitialState> = props => {
         bindEl: data => el => {
             data.el = el
         },
-        playGame: (key) => () => {
+        playGame: key => () => {
             if (!state.completedLineIndexs.includes(key)) {
                 dispatch(actions.playGame(key))
                 return true
@@ -179,21 +177,18 @@ const LadderGame: React.FC<InitialState> = props => {
         }),
     }
 
-    useCreated(() => {
+    useEffect(() => {
         methods.paintLadder()
-
         window.addEventListener('resize', methods.handleWindowResize)
-    })
 
-    useMounted(() => {
-        methods.calcMapSize()
+        return () => {
+            window.removeEventListener('resize', methods.handleWindowResize)
+        }
+    }, [])
 
-        console.log(state)
-    })
-
-    useBeforeDestroy(() => {
-        window.removeEventListener('resize', methods.handleWindowResize)
-    })
+    useEffect(() => {
+        state.hasMapData && methods.calcMapSize()
+    }, [state.hasMapData])
 
     return (
         <div className={classes.root}>
