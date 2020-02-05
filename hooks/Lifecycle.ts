@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 
 // TODO:
-// activated
-// deactivated
-// nextTick
+// created mounted 등 필요없다고 판단되어 삭제할 예정
+// - 아래 내용 참고해서 로거 함수만 따로 분리 (const logger = new Logger({ display = process?.env.NODE_ENV === 'development', label, color }))
+// - nextTick은 쓸만 할 것 같으니 만들어 봅시다
+// useLifecycle({ useLog: true, logLabel: 'LadderGame' })
+
 
 enum Color {
     PersianGreen = '#009688',
