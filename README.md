@@ -32,7 +32,7 @@ build 디렉토리에 컴파일된 소스를 생성합니다.
 
 문법검사시 사용하는 명령입니다. `dev`, `build` 명령 실행시 자동으로 실행됩니다.
 
-### deploy
+### deploy [setup]
 
 pm2를 사용하여 배포시 사용합니다. 배포관련 설정이 미리 필요하며, [Deploy config](#deploy-config)을 확인해주세요.
 
@@ -62,7 +62,7 @@ cp deploy.env deploy.env.local
 첫 배포시 서버에 파일을 생성하기 위해 아래의 명령을 실행해야 합니다.
 
 ```bash
-pm2 deploy pm2.config.js production setup
+npm run deploy setup
 ```
 
 ## Tech stack
