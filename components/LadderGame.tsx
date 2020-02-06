@@ -22,7 +22,7 @@ TODO:
 // midLine을 취소할 수 있으며, 취소하면 원상복귀시켜야 됨.
 // 보상은 midLine이 다 그려진 뒤 게임이 시작되기전에 순서를 랜덤으로 섞어야됨
 // resultLine은 mapData의 0부터 시작해서 nextStep을 따라 그려져야됨
-resultLine이 그려질 때 애니메이션 추가
+// resultLine이 그려질 때 애니메이션 추가
 결과 데이터 저장
 확률 표시
 
