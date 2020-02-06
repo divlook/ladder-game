@@ -13,7 +13,7 @@
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
         "@types/node": "^13.7.0",
         "@types/react": "^16.9.19",
