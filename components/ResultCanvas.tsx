@@ -110,7 +110,9 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
         if (!ctx) return
 
         const lastIndex = state.coordinates.length - 1
-        const waypointMapper = ([prev, next]: [Waypoint, Waypoint]) => (isEnd) => {
+        const waypointMapper = (waypoints: [Waypoint, Waypoint]) => isEnd => {
+            // const prev = waypoints[0]
+            const next = waypoints[1]
             ctx.lineTo(...next)
             isEnd && ctx.stroke()
         }
@@ -134,7 +136,9 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
                     ctx.beginPath()
                 })
 
-                result = result.concat(calcWaypoints([currentCoordinate[0], currentCoordinate[1] - 3], currentCoordinate).map(waypointMapper))
+                result = result.concat(
+                    calcWaypoints([currentCoordinate[0], currentCoordinate[1] - 3], currentCoordinate).map(waypointMapper)
+                )
             }
 
             if (prevCoordinate) {
@@ -142,7 +146,9 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
             }
 
             if (index === lastIndex) {
-                result = result.concat(calcWaypoints(currentCoordinate, [currentCoordinate[0], currentCoordinate[1] + 3]).map(waypointMapper))
+                result = result.concat(
+                    calcWaypoints(currentCoordinate, [currentCoordinate[0], currentCoordinate[1] + 3]).map(waypointMapper)
+                )
                 result.push(() => {
                     ctx.stroke()
                     ctx.closePath()
@@ -162,7 +168,7 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
         }))
     }, [state.lineWidth, state.coordinates, width, height, lineIndex])
 
-    function calcWaypoints(start: number[], end: number[]) {
+    const calcWaypoints = useCallback((start: number[], end: number[]) => {
         const waypoints: [Waypoint, Waypoint][] = []
         const dx = end[0] - start[0]
         const dy = end[1] - start[1]
@@ -179,24 +185,27 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
         }
 
         return waypoints
-    }
+    }, [])
 
-    const drawCanvas = useCallback((useAnimation = false, playIndex = 0) => {
-        for (const index in state.animations) {
-            const isEnd = playIndex <= index
-            const animationCallback = state.animations[index]
-            animationCallback?.(isEnd)
-            if (isEnd) break
-        }
+    const drawCanvas = useCallback(
+        (useAnimation = false, playIndex = 0) => {
+            for (const index in state.animations) {
+                const isEnd = playIndex <= index
+                const animationCallback = state.animations[index]
+                animationCallback?.(isEnd)
+                if (isEnd) break
+            }
 
-        playIndex++
+            playIndex++
 
-        if (useAnimation) {
-            requestAnimationFrame(() => drawCanvas(useAnimation, playIndex))
-        } else {
-            drawCanvas(useAnimation, playIndex)
-        }
-    }, [state.animations])
+            if (useAnimation) {
+                requestAnimationFrame(() => drawCanvas(useAnimation, playIndex))
+            } else {
+                drawCanvas(useAnimation, playIndex)
+            }
+        },
+        [state.animations]
+    )
 
     return <canvas ref={canvasRef} width={width} height={height} />
 }
