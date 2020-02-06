@@ -110,10 +110,8 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
         if (!ctx) return
 
         const lastIndex = state.coordinates.length - 1
-        const waypointMapper = (waypoints: [Waypoint, Waypoint]) => isEnd => {
-            // const prev = waypoints[0]
-            const next = waypoints[1]
-            ctx.lineTo(...next)
+        const waypointMapper = (waypoint: Waypoint) => isEnd => {
+            ctx.lineTo(...waypoint)
             isEnd && ctx.stroke()
         }
 
@@ -169,19 +167,16 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
     }, [state.lineWidth, state.coordinates, width, height, lineIndex])
 
     const calcWaypoints = useCallback((start: number[], end: number[]) => {
-        const waypoints: [Waypoint, Waypoint][] = []
+        const waypoints: Waypoint[] = []
         const dx = end[0] - start[0]
         const dy = end[1] - start[1]
-        const frames = Math.round(Math.cbrt(Math.pow(Math.abs(dx), 2) + Math.pow(Math.abs(dy), 2))) * 1.2
+        const frames = Math.round(Math.sqrt(Math.pow(Math.abs(dx), 2) + Math.pow(Math.abs(dy), 2)) / 10)
 
-        let prevWaypoint: Waypoint | null = null
-
-        for (let i = 0; i < frames; i++) {
+        for (let i = 0; i <= frames; i++) {
             const x = start[0] + (dx * i) / frames
             const y = start[1] + (dy * i) / frames
-            const waypoint: Waypoint = [x, y]
-            if (prevWaypoint) waypoints.push([prevWaypoint, waypoint])
-            prevWaypoint = waypoint
+
+            waypoints.push([x, y])
         }
 
         return waypoints
