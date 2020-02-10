@@ -20,8 +20,7 @@ type AnimationCallback = (isEnd: boolean) => void
 
 const ResultCanvas: React.FC<ResultCanvasProps> = props => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const { width, height, lineIndex, map } = props
-
+    const [mounted, setMount] = useState(false)
     const [state, setState] = useState<ResultCanvasState>(() => {
         return {
             coordinates: [],
@@ -31,28 +30,44 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
     })
 
     useEffect(() => {
-        calcCoordinates()
-    }, [width, height, lineIndex, map])
+        const { stopAnimation } = drawCanvas(true)
+        setMount(true)
+
+        return () => {
+            stopAnimation()
+        }
+    }, [])
 
     useEffect(() => {
-        makeAnimations()
-    }, [state.coordinates])
+        if (mounted) {
+            drawCanvas()
+        }
+    }, [props])
 
-    useEffect(() => {
-        drawCanvas(true)
-    }, [state.animations])
+    const drawCanvas = useCallback((isManual = false) => {
+        const coordinates = calcCoordinates()
+        const animations = makeAnimations(coordinates)
+
+        setState(prevState => ({
+            ...prevState,
+            animations,
+            coordinates,
+        }))
+
+        return playAnimation(animations, isManual)
+    }, [])
 
     const calcCoordinates = useCallback(() => {
-        const nextCoordinates: Waypoint[] = []
+        const coordinates: Waypoint[] = []
         let prevBlockUid = 0
-        let current: MapData | null = map[lineIndex][0]
+        let current: MapData | null = props.map[props.lineIndex][0]
 
         while (current !== null) {
             let next: MapData | null = null
             if (current.nextBlock) {
-                if (nextCoordinates.length === 0) {
+                if (coordinates.length === 0) {
                     // 시작
-                    nextCoordinates.push([
+                    coordinates.push([
                         (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - state.lineWidth) / 2,
                         current.el?.offsetTop || 0,
                     ])
@@ -60,7 +75,7 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
                     next = current.nextBlock
                 } else if (current.linkedBlock) {
                     if (current.isHandle) {
-                        nextCoordinates.push([
+                        coordinates.push([
                             (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - state.lineWidth) / 2,
                             (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0 - state.lineWidth) / 2,
                         ])
@@ -79,7 +94,7 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
                 }
             } else {
                 // 끝
-                nextCoordinates.push([
+                coordinates.push([
                     (current.el?.offsetLeft || 0) + (current.el?.offsetWidth || 0 - state.lineWidth) / 2,
                     (current.el?.offsetTop || 0) + (current.el?.offsetHeight || 0),
                 ])
@@ -89,82 +104,77 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
             current = next
         }
 
-        setState(prevState => {
-            return {
-                ...prevState,
-                coordinates: [...nextCoordinates],
-            }
-        })
-    }, [lineIndex, map])
+        return coordinates
+    }, [props.map, props.lineIndex, state.lineWidth])
 
-    const makeAnimations = useCallback(() => {
-        if (!canvasRef.current || !width || !height) return
+    const makeAnimations = useCallback(
+        (coordinates = state.coordinates) => {
+            if (!canvasRef.current || !props.width || !props.height) return []
 
-        canvasRef.current.width = width
-        canvasRef.current.height = height
+            canvasRef.current.width = props.width
+            canvasRef.current.height = props.height
 
-        const canvas = canvasRef.current
-        const ctx = canvas.getContext('2d')
-        const color = colors[lineIndex % colors.length]
+            const canvas = canvasRef.current
+            const ctx = canvas.getContext('2d')
+            const color = colors[props.lineIndex % colors.length]
 
-        if (!ctx) return
+            if (!ctx) return []
 
-        const lastIndex = state.coordinates.length - 1
-        const waypointMapper = (waypoint: Waypoint) => isEnd => {
-            ctx.lineTo(...waypoint)
-            isEnd && ctx.stroke()
-        }
-
-        ctx.lineWidth = state.lineWidth
-        ctx.lineCap = 'round'
-        ctx.lineJoin = 'round'
-        ctx.strokeStyle = color
-        ctx.fillStyle = color
-
-        const animations = state.coordinates.reduce((result: AnimationCallback[], currentCoordinate, index) => {
-            const prevCoordinate = state.coordinates[index - 1]
-
-            if (index === 0) {
-                result.push(() => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height)
-                    ctx.beginPath()
-                    ctx.arc(currentCoordinate[0], currentCoordinate[1] - 8, 6, 0, Math.PI * 2)
-                    ctx.closePath()
-                    ctx.fill()
-                    ctx.beginPath()
-                })
-
-                result = result.concat(
-                    calcWaypoints([currentCoordinate[0], currentCoordinate[1] - 3], currentCoordinate).map(waypointMapper)
-                )
+            const lastIndex = coordinates.length - 1
+            const waypointMapper = (waypoint: Waypoint) => isEnd => {
+                ctx.lineTo(...waypoint)
+                isEnd && ctx.stroke()
             }
 
-            if (prevCoordinate) {
-                result = result.concat(calcWaypoints(prevCoordinate, currentCoordinate).map(waypointMapper))
-            }
+            ctx.lineWidth = state.lineWidth
+            ctx.lineCap = 'round'
+            ctx.lineJoin = 'round'
+            ctx.strokeStyle = color
+            ctx.fillStyle = color
 
-            if (index === lastIndex) {
-                result = result.concat(
-                    calcWaypoints(currentCoordinate, [currentCoordinate[0], currentCoordinate[1] + 3]).map(waypointMapper)
-                )
-                result.push(() => {
-                    ctx.stroke()
-                    ctx.closePath()
-                    ctx.beginPath()
-                    ctx.arc(currentCoordinate[0], currentCoordinate[1] + 8, 6, 0, Math.PI * 2)
-                    ctx.closePath()
-                    ctx.fill()
-                })
-            }
+            const animations = coordinates.reduce((result: AnimationCallback[], currentCoordinate, index) => {
+                const prevCoordinate = coordinates[index - 1]
 
-            return result
-        }, [])
+                if (index === 0) {
+                    result.push(() => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height)
+                        ctx.beginPath()
+                        ctx.arc(currentCoordinate[0], currentCoordinate[1] - 8, 6, 0, Math.PI * 2)
+                        ctx.closePath()
+                        ctx.fill()
+                        ctx.beginPath()
+                    })
 
-        setState(prevState => ({
-            ...prevState,
-            animations: [...animations],
-        }))
-    }, [state.lineWidth, state.coordinates, width, height, lineIndex])
+                    result = result.concat(
+                        calcWaypoints([currentCoordinate[0], currentCoordinate[1] - 3], currentCoordinate).map(waypointMapper)
+                    )
+                }
+
+                if (prevCoordinate) {
+                    result = result.concat(calcWaypoints(prevCoordinate, currentCoordinate).map(waypointMapper))
+                }
+
+                if (index === lastIndex) {
+                    result = result.concat(
+                        calcWaypoints(currentCoordinate, [currentCoordinate[0], currentCoordinate[1] + 3]).map(waypointMapper)
+                    )
+                    result.push(() => {
+                        ctx.stroke()
+                        ctx.closePath()
+                        ctx.beginPath()
+                        ctx.arc(currentCoordinate[0], currentCoordinate[1] + 8, 6, 0, Math.PI * 2)
+                        ctx.closePath()
+                        ctx.fill()
+                    })
+                }
+
+                return result
+            }, [])
+
+            return animations
+        },
+        [props, state.coordinates, state.lineWidth]
+    )
 
     const calcWaypoints = useCallback((start: number[], end: number[]) => {
         const waypoints: Waypoint[] = []
@@ -182,27 +192,31 @@ const ResultCanvas: React.FC<ResultCanvasProps> = props => {
         return waypoints
     }, [])
 
-    const drawCanvas = useCallback(
-        (useAnimation = false, playIndex = 0) => {
-            for (const index in state.animations) {
-                const isEnd = playIndex <= index
-                const animationCallback = state.animations[index]
+    const playAnimation = useCallback(
+        (animations: AnimationCallback[], useAnimation = false, playAnimationState = { playing: true, playIndex: 0 }) => {
+            for (const index in animations) {
+                const isEnd = useAnimation && playAnimationState.playIndex <= Number(index)
+                const animationCallback = animations[index]
                 animationCallback?.(isEnd)
                 if (isEnd) break
             }
 
-            playIndex++
+            playAnimationState.playIndex++
 
-            if (useAnimation) {
-                requestAnimationFrame(() => drawCanvas(useAnimation, playIndex))
-            } else {
-                drawCanvas(useAnimation, playIndex)
+            if (playAnimationState.playing && useAnimation && playAnimationState.playIndex < animations.length) {
+                requestAnimationFrame(() => playAnimation(animations, useAnimation, playAnimationState))
+            }
+
+            return {
+                stopAnimation() {
+                    playAnimationState.playing = false
+                },
             }
         },
-        [state.animations]
+        []
     )
 
-    return <canvas ref={canvasRef} width={width} height={height} />
+    return <canvas ref={canvasRef} width={props.width} height={props.height} />
 }
 
 export default ResultCanvas
