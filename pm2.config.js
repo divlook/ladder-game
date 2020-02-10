@@ -36,7 +36,7 @@ module.exports = {
             repo: env.LADDER_DEPLOY_REPO,
             path: path.join(env.LADDER_DEPLOY_PATH, 'production'),
             'pre-setup': `mkdir -p ${path.join(env.LADDER_DEPLOY_PATH, 'production')}`,
-            'post-deploy': 'npm install --only=prod --no-audit && pm2 reload pm2.config.js --env production',
+            'post-deploy': 'npm install --only=prod && pm2 startOrRestart pm2.config.js --env production && pm2 save',
         },
     },
 }
