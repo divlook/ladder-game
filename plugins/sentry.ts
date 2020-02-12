@@ -1,16 +1,9 @@
-import {
-    init as SentryInit,
-    withScope as SentryWithScope,
-    captureException as SentryCaptureException,
-    Scope,
-} from '@sentry/browser'
-import { NODE_ENV, LADDER_VERSION, SENTRY_DSN } from '~/lib/constants'
-
-const hasSentryDSN = !!SENTRY_DSN
+import * as Sentry from '@sentry/browser'
+import { NODE_ENV, LADDER_VERSION, SENTRY_DSN, USE_SENTRY } from '~/lib/constants'
 
 export const init = () => {
-    if (hasSentryDSN) {
-        SentryInit({
+    if (USE_SENTRY) {
+        Sentry.init({
             dsn: SENTRY_DSN,
             environment: NODE_ENV,
             release: LADDER_VERSION,
@@ -18,10 +11,14 @@ export const init = () => {
     }
 }
 
-export const withScope = (callback: (scope: Scope) => void) => {
-    if (hasSentryDSN) SentryWithScope(callback)
+export const withScope = (callback: (scope: Sentry.Scope) => void) => {
+    if (USE_SENTRY) Sentry.withScope(callback)
 }
 
 export const captureException = error => {
-    return hasSentryDSN ? SentryCaptureException(error) : ''
+    return USE_SENTRY ? Sentry.captureException(error) : ''
+}
+
+export const configureScope = (callback: (scope: Sentry.Scope) => void) => {
+    if (USE_SENTRY) Sentry.configureScope(callback)
 }

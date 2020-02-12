@@ -18,6 +18,7 @@ module.exports = phase => {
          */
         env: {
             LADDER_PLUGIN_SENTRY_DSN: process.env.LADDER_PLUGIN_SENTRY_DSN,
+            LADDER_PLUGIN_LOGROCKET_ID: process.env.LADDER_PLUGIN_LOGROCKET_ID,
         },
 
         /**
