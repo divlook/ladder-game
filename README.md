@@ -38,12 +38,12 @@ pm2를 사용하여 배포시 사용합니다. 배포관련 설정이 미리 필
 
 ## Deploy config
 
-배포를 위한 설정은 [deploy.env](./deploy.env)에서 할 수 있지만 직접 수정하시면 안됩니다. [deploy.env](./deploy.env) 파일을 복사하여 같은 경로에 `deploy.env.local` 파일을 만들어주세요. `deploy.env.local`은 git이 추적하지 않습니다.
+배포를 위한 설정은 [deploy.env](./configs/deploy.env)에서 할 수 있지만 직접 수정하시면 안됩니다. [deploy.env](./configs/deploy.env) 파일을 복사하여 같은 경로에 `deploy.env.local` 파일을 만들어주세요. `*.env.local` 파일은 git이 추적하지 않습니다.
 
 ### deploy.env.local 생성
 
 ```bash
-cp deploy.env deploy.env.local
+cp configs/deploy.env configs/deploy.env.local
 ```
 
 ### deploy.env property

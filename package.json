@@ -20,6 +20,7 @@
         "@types/react-dom": "^16.9.5",
         "@typescript-eslint/eslint-plugin": "^2.19.0",
         "@typescript-eslint/parser": "^2.19.0",
+        "@zeit/next-source-maps": "0.0.3",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.0",
         "eslint-loader": "^3.0.3",
@@ -31,6 +32,7 @@
     "dependencies": {
         "@material-ui/core": "^4.9.1",
         "@material-ui/icons": "^4.9.1",
+        "@sentry/browser": "^5.12.1",
         "clsx": "^1.1.0",
         "dotenv": "^8.2.0",
         "next": "^9.2.1",
