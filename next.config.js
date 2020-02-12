@@ -2,8 +2,11 @@
 
 const path = require('path')
 const isProd = process.env.NODE_ENV === 'production'
+const withSourceMaps = require('@zeit/next-source-maps')
 
-module.exports = {
+const configWrappers = [withSourceMaps]
+
+const nextConfig = {
     /**
      * Build directory
      */
@@ -72,3 +75,5 @@ module.exports = {
         return config
     },
 }
+
+module.exports = configWrappers.reduce((config, wrapper) => wrapper(config), nextConfig)
