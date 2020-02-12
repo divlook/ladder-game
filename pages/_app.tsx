@@ -3,8 +3,10 @@ import App from 'next/app'
 import 'react-app-polyfill/ie11'
 import 'react-app-polyfill/stable'
 import * as Sentry from '~/plugins/sentry'
+import { initLogRocket } from '~/plugins/logrocket'
 
 Sentry.init()
+initLogRocket().withSentry(Sentry)
 
 class MyApp extends App {
     getInitialProps = async (appContext: any) => {
