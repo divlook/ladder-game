@@ -1,0 +1,10 @@
+{
+    "presets": [
+        "next/babel"
+    ],
+    "plugins": [
+        "add-react-displayname",
+        "@babel/plugin-proposal-class-properties",
+        "@babel/plugin-proposal-do-expressions"
+    ]
+}
