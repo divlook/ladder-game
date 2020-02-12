@@ -1,6 +1,10 @@
 import React from 'react'
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheets } from '@material-ui/core'
+import * as Sentry from '~/plugins/sentry'
+
+process.on('unhandledRejection', err => void Sentry.captureException(err))
+process.on('uncaughtException', err => void Sentry.captureException(err))
 
 class MyDocument extends Document {
     static async getInitialProps(ctx: any) {
