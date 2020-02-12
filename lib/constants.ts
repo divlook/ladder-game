@@ -9,3 +9,5 @@ export const LADDER_VERSION = version ?? '0.1.0'
  */
 export const SENTRY_DSN = process.env.LADDER_PLUGIN_SENTRY_DSN ?? ''
 export const USE_SENTRY = SENTRY_DSN && IS_PRODUCTION
+export const LOGROCKET_ID = process.env.LADDER_PLUGIN_LOGROCKET_ID ?? ''
+export const USE_LOGROCKET = LOGROCKET_ID && IS_PRODUCTION
