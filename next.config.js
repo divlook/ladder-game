@@ -3,10 +3,18 @@
 const path = require('path')
 const isProd = process.env.NODE_ENV === 'production'
 const withSourceMaps = require('@zeit/next-source-maps')
+require('./lib/loadenv')('plugin')
 
 const configWrappers = [withSourceMaps]
 
 const nextConfig = {
+    /**
+     * Environment Variables
+     */
+    env: {
+        LADDER_PLUGIN_SENTRY_DSN: process.env.LADDER_PLUGIN_SENTRY_DSN,
+    },
+
     /**
      * Build directory
      */
