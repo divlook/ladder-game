@@ -5,11 +5,15 @@ node_modules
 /tests/e2e/videos/
 /tests/e2e/screenshots/
 
-# local env files
+# env files
+.env
+*.env
 .env.local
 .env.*.local
 *.env.local
 *.env.*.local
+!.env.example
+!*.env.example
 
 # Log files
 npm-debug.log*
@@ -28,5 +32,6 @@ yarn-error.log*
 # History
 .history
 
-# NextJs 개발용 build 폴더
+# NextJs build 폴더
 .next
+build
