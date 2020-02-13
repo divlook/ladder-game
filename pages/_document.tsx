@@ -2,6 +2,7 @@ import React from 'react'
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheets } from '@material-ui/core'
 import * as Sentry from '~/plugins/sentry'
+import { GoogleAnalytics } from '~/plugins/google-analytics'
 
 process.on('unhandledRejection', err => void Sentry.captureException(err))
 process.on('uncaughtException', err => void Sentry.captureException(err))
@@ -28,6 +29,7 @@ class MyDocument extends Document {
         return (
             <Html lang="ko">
                 <Head>
+                    <GoogleAnalytics />
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
                 </Head>
                 <body>
