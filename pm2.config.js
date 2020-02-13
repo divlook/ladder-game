@@ -1,7 +1,27 @@
 /* eslint-disable */
 
 const path = require('path')
-const env = require('./lib/loadenv')('deploy')
+require('./lib/loadenv')('deploy')
+
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const LADDER_DEPLOY_SSH_KEY = process.env.LADDER_DEPLOY_SSH_KEY
+const LADDER_DEPLOY_USER = process.env.LADDER_DEPLOY_USER
+const LADDER_DEPLOY_HOST = process.env.LADDER_DEPLOY_HOST
+const LADDER_DEPLOY_REMOTE = process.env.LADDER_DEPLOY_REMOTE || 'origin'
+const LADDER_DEPLOY_BRANCH = process.env.LADDER_DEPLOY_BRANCH || 'master'
+const LADDER_DEPLOY_REPO = process.env.LADDER_DEPLOY_REPO
+const LADDER_DEPLOY_PATH = process.env.LADDER_DEPLOY_PATH
+
+const deployConfig = {
+    key: LADDER_DEPLOY_SSH_KEY,
+    user: LADDER_DEPLOY_USER,
+    host: LADDER_DEPLOY_HOST,
+    ref: `${LADDER_DEPLOY_REMOTE}/${LADDER_DEPLOY_BRANCH}`,
+    repo: LADDER_DEPLOY_REPO,
+    path: path.join(LADDER_DEPLOY_PATH, NODE_ENV),
+    'pre-setup': `mkdir -p ${path.join(LADDER_DEPLOY_PATH, NODE_ENV)}`,
+    'post-deploy': `npm install --only=prod && pm2 startOrRestart pm2.config.js --env ${NODE_ENV} && pm2 save`,
+}
 
 module.exports = {
     apps: [
@@ -17,6 +37,9 @@ module.exports = {
             env: {
                 NODE_ENV: 'development',
             },
+            env_test: {
+                NODE_ENV: 'test',
+            },
             env_production: {
                 NODE_ENV: 'production',
             },
@@ -28,15 +51,8 @@ module.exports = {
     ],
 
     deploy: {
-        production: {
-            key: env.LADDER_DEPLOY_SSH_KEY,
-            user: env.LADDER_DEPLOY_USER,
-            host: env.LADDER_DEPLOY_HOST,
-            ref: env.LADDER_DEPLOY_BRANCH,
-            repo: env.LADDER_DEPLOY_REPO,
-            path: path.join(env.LADDER_DEPLOY_PATH, 'production'),
-            'pre-setup': `mkdir -p ${path.join(env.LADDER_DEPLOY_PATH, 'production')}`,
-            'post-deploy': 'npm install --only=prod && pm2 startOrRestart pm2.config.js --env production && pm2 save',
-        },
+        production: { ...deployConfig },
+        test: { ...deployConfig },
+        development: { ...deployConfig },
     },
 }

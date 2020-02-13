@@ -32,9 +32,19 @@ build 디렉토리에 컴파일된 소스를 생성합니다.
 
 문법검사시 사용하는 명령입니다. `dev`, `build` 명령 실행시 자동으로 실행됩니다.
 
-### deploy [setup]
+### publish
 
-pm2를 사용하여 배포시 사용합니다. 배포관련 설정이 필요하며, [Deploy](#deploy)을 확인해주세요.
+상용 서비스에만 필요한 파일들(build된 소스 포함)을 배포용 git에 push합니다. 배포관련 설정은 [Deploy](#deploy)를 확인해주세요.
+
+### remote [setup]
+
+pm2를 사용하여 서버에 원격으로 연결합니다. 배포관련 설정은 [Deploy](#deploy)를 확인해주세요.
+
+### deploy
+
+현재 작업 내용을 서버에 배포합니다. 배포관련 설정은 [Deploy](#deploy)를 확인해주세요.
+
+`npm run build`, `npm run publish`, `npm run remote`를 순서대로 실행합니다.
 
 ## Config
 
@@ -104,7 +114,7 @@ cp configs/deploy.env.example configs/deploy.env
 첫 배포시 서버에 파일을 생성하기 위해 아래의 명령을 실행해야 합니다.
 
 ```bash
-npm run deploy setup
+npm run remote setup
 ```
 
 ## Tech stack
