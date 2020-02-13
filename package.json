@@ -9,7 +9,9 @@
         "start": "next start",
         "type-check": "tsc",
         "lint": "eslint '*/**/*.{js,ts,tsx}'",
-        "deploy": "pm2 deploy pm2.config.js production"
+        "publish": "cross-env NODE_ENV=production ./scripts/publish.js",
+        "remote": "pm2 deploy pm2.config.js production",
+        "deploy": "npm run build && npm run publish && npm run remote"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
@@ -25,11 +27,13 @@
         "@typescript-eslint/parser": "^2.19.0",
         "@zeit/next-source-maps": "0.0.3",
         "babel-plugin-add-react-displayname": "0.0.5",
+        "chalk": "^3.0.0",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.0",
         "eslint-loader": "^3.0.3",
         "eslint-plugin-prettier": "^3.1.2",
         "eslint-plugin-react": "^7.18.3",
+        "gh-pages": "^2.2.0",
         "prettier": "1.19.1",
         "typescript": "^3.7.5"
     },
@@ -38,6 +42,7 @@
         "@material-ui/icons": "^4.9.1",
         "@sentry/browser": "^5.12.1",
         "clsx": "^1.1.0",
+        "cross-env": "^7.0.0",
         "dotenv": "^8.2.0",
         "logrocket": "^1.0.6",
         "logrocket-react": "^4.0.1",
