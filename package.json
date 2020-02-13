@@ -10,7 +10,7 @@
         "type-check": "tsc",
         "lint": "eslint '*/**/*.{js,ts,tsx}'",
         "publish": "cross-env NODE_ENV=production node scripts/publish.js",
-        "remote": "pm2 deploy pm2.config.js production",
+        "remote": "cross-env NODE_ENV=production pm2 deploy pm2.config.js production",
         "deploy": "npm run build && npm run publish && npm run remote"
     },
     "keywords": [],
