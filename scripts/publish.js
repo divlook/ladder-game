@@ -4,7 +4,6 @@
 const chalk = require('chalk')
 const ghpages = require('gh-pages')
 const { execSync } = require('child_process')
-const { version } = require('../package.json')
 require('../lib/loadenv')('deploy')
 
 const LADDER_DEPLOY_REMOTE = process.env.LADDER_DEPLOY_REMOTE || 'origin'
@@ -18,6 +17,17 @@ const getCommitID = () => {
         return undefined
     }
 }
+
+const getTagName = (commitID) => {
+    try {
+        return execSync(`git tag --contains ${commitID}`).toString()
+    } catch {
+        return undefined
+    }
+}
+
+// TODO: branch에 따라서 배포를 다르게 할 경우 사용
+// git branch --show-current
 
 const publishCallback = error => {
     console.group(chalk.cyan('ghpages'))
@@ -41,6 +51,8 @@ const publishSrc = [
     'package.json',
     'pm2.config.js',
 ]
+const commitID = getCommitID()
+const tagName = getTagName(commitID)
 
 ghpages.clean()
 ghpages.publish(
@@ -50,9 +62,8 @@ ghpages.publish(
         remote: LADDER_DEPLOY_REMOTE,
         branch: LADDER_DEPLOY_BRANCH,
         repo: LADDER_DEPLOY_REPO,
-        tag: version,
-        message: getCommitID(),
-        silent: true,
+        tag: tagName,
+        message: commitID,
     },
     publishCallback
 )
