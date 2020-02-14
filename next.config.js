@@ -1,12 +1,13 @@
 /* eslint-disable */
 
 const path = require('path')
-const { PHASE_PRODUCTION_BUILD } = require('next/constants')
+const { PHASE_PRODUCTION_BUILD, PHASE_EXPORT } = require('next/constants')
 const isProd = process.env.NODE_ENV === 'production'
 require('./lib/loadenv')('plugin')
 
 module.exports = phase => {
     const configWrappers = []
+    const LADDER_IS_BUILT = [PHASE_EXPORT, PHASE_PRODUCTION_BUILD].some(currentPhase => currentPhase === phase)
 
     if (phase === PHASE_PRODUCTION_BUILD) {
         configWrappers.push(require('@zeit/next-source-maps'))
@@ -20,6 +21,7 @@ module.exports = phase => {
             LADDER_PLUGIN_SENTRY_DSN: process.env.LADDER_PLUGIN_SENTRY_DSN,
             LADDER_PLUGIN_LOGROCKET_ID: process.env.LADDER_PLUGIN_LOGROCKET_ID,
             LADDER_PLUGIN_GA_ID: process.env.LADDER_PLUGIN_GA_ID,
+            LADDER_IS_BUILT,
         },
 
         /**
