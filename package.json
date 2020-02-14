@@ -11,7 +11,8 @@
         "lint": "eslint '*/**/*.{js,ts,tsx}'",
         "publish": "cross-env NODE_ENV=production node scripts/publish.js",
         "remote": "cross-env NODE_ENV=production pm2 deploy pm2.config.js production",
-        "deploy": "npm run build && npm run publish && npm run remote"
+        "deploy": "npm run build && npm run publish && npm run remote",
+        "test": "cypress open"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
@@ -28,9 +29,11 @@
         "@zeit/next-source-maps": "0.0.3",
         "babel-plugin-add-react-displayname": "0.0.5",
         "chalk": "^3.0.0",
+        "cypress": "^4.0.1",
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.0",
         "eslint-loader": "^3.0.3",
+        "eslint-plugin-cypress": "^2.9.0",
         "eslint-plugin-prettier": "^3.1.2",
         "eslint-plugin-react": "^7.18.3",
         "gh-pages": "^2.2.0",
