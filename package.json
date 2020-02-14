@@ -11,7 +11,8 @@
         "lint": "eslint '*/**/*.{js,ts,tsx}'",
         "publish": "cross-env NODE_ENV=production node scripts/publish.js",
         "remote": "cross-env NODE_ENV=production pm2 deploy pm2.config.js production",
-        "deploy": "npm run build && npm run publish && npm run remote"
+        "deploy": "npm run build && npm run publish && npm run remote",
+        "test": "cypress open"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
