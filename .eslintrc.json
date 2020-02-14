@@ -33,7 +33,8 @@
         "react/prop-types": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-use-before-define": ["off", { "functions": false, "classes": false, "variables": false }]
+        "@typescript-eslint/no-use-before-define": ["off", { "functions": false, "classes": false, "variables": false }],
+        "cypress/no-unnecessary-waiting": "off"
     },
     "settings": {
         "react": {
