@@ -20,14 +20,14 @@ const deployConfig = {
     repo: LADDER_DEPLOY_REPO,
     path: path.join(LADDER_DEPLOY_PATH, NODE_ENV),
     'pre-setup': `mkdir -p ${path.join(LADDER_DEPLOY_PATH, NODE_ENV)}`,
-    'post-deploy': `npm install --only=prod && pm2 startOrRestart pm2.config.js --env ${NODE_ENV} && pm2 save`,
+    'post-deploy': `npm install --only=prod --no-optional && pm2 startOrRestart pm2.config.js --env ${NODE_ENV} && pm2 save`,
 }
 
 module.exports = {
     apps: [
         {
             name: 'ladder-game (FE)',
-            script: 'npm run start',
+            script: 'npm run start -- --port 3000',
 
             // Options reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
             instances: 1,
