@@ -27,7 +27,7 @@ module.exports = {
     apps: [
         {
             name: 'ladder-game (FE)',
-            script: 'npm run start',
+            script: 'npm run start -- --port 3000',
 
             // Options reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
             instances: 1,
