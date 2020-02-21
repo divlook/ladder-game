@@ -9,10 +9,13 @@
         "start": "next start",
         "type-check": "tsc",
         "lint": "eslint '*/**/*.{js,ts,tsx}'",
-        "publish": "cross-env NODE_ENV=production node scripts/publish.js",
-        "remote": "cross-env NODE_ENV=production node scripts/deploy.js",
-        "deploy": "npm run build && npm run publish && npm run remote",
-        "test": "cypress open"
+        "publish": "node scripts/publish.js",
+        "remote": "node scripts/deploy.js",
+        "deploy": "npm run env:prod npm run build && npm run env:prod npm run publish && npm run env:prod npm run remote",
+        "deploy:main": "npm run env:prod npm run build && npm run env:prod npm run publish main && npm run env:prod npm run remote main",
+        "deploy:sub": "npm run env:prod npm run build && npm run env:prod npm run publish sub && npm run env:prod npm run remote sub",
+        "test": "cypress open",
+        "env:prod": "cross-env NODE_ENV=production"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
