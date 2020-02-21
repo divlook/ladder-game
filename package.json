@@ -15,7 +15,8 @@
         "deploy:main": "npm run env:prod npm run build && npm run env:prod npm run publish main && npm run env:prod npm run remote main",
         "deploy:sub": "npm run env:prod npm run build && npm run env:prod npm run publish sub && npm run env:prod npm run remote sub",
         "test": "cypress open",
-        "env:prod": "cross-env NODE_ENV=production"
+        "env:prod": "cross-env NODE_ENV=production",
+        "export": "node scripts/export.js"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",

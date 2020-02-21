@@ -50,6 +50,14 @@ pm2를 사용하여 서버에 원격으로 연결합니다. 배포관련 설정�
 
 cypress를 실행합니다. 테스트코드는 [cypress](./cypress)폴더에서 작성할 수 있습니다. 자세한 내용은 [https://cypress.io/](https://cypress.io/)를 참고해주세요.
 
+### export [dist]
+
+build 디렉토리 소스를 기준으로 정적파일을 생성합니다. 기본 경로는 `dist` 이지만 태그가 있을 경우 `dist/[태그이름]`으로 생성됩니다.
+
+만약 폴더명을 태그이름이 아닌 `dist`로 하고 싶을 경우 `npm run export dist`로 실행하시면 됩니다.
+
+`npm run export statics`로 실행하면 `dist/statics`으로 생성됩니다.
+
 ## Config
 
 환경변수와 관련된 설정파일은 모두 [configs](./configs) 경로에 있습니다.
