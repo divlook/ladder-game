@@ -25,6 +25,11 @@ module.exports = phase => {
         },
 
         /**
+         * CDN Support with Asset Prefix
+         */
+        assetPrefix: './',
+
+        /**
          * Build directory
          */
         distDir: isProd ? 'build' : '.next',
