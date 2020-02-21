@@ -32,13 +32,15 @@ build 디렉토리에 컴파일된 소스를 생성합니다.
 
 문법검사시 사용하는 명령입니다. `dev`, `build` 명령 실행시 자동으로 실행됩니다.
 
-### publish
+### publish [serverName]
 
 상용 서비스에만 필요한 파일들(build된 소스 포함)을 배포용 git에 push합니다. 배포관련 설정은 [Deploy](#deploy)를 확인해주세요.
 
-### remote [setup]
+### remote [serverName] [setup]
 
 pm2를 사용하여 서버에 원격으로 연결합니다. 배포관련 설정은 [Deploy](#deploy)를 확인해주세요.
+
+pm2 deploy는 기본적으로 로컬과 remote의 git 상태가 같지 않으면 실행되지 않습니다. 만약 강제로 하고 싶다면 `force` 옵션을 사용하세요. (`npm run remote [serverName] -- --force`)
 
 ### deploy
 
