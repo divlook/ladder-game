@@ -60,6 +60,14 @@ build 디렉토리 소스를 기준으로 정적파일을 생성합니다. 기�
 
 `npm run export statics`로 실행하면 `dist/statics`으로 생성됩니다.
 
+### guide
+
+[Storybook](https://storybook.js.org/)으로 제작된 가이드 문서를 실행시킵니다. 파일이 변경되면 실시간으로 다시 생성됩니다.
+
+### guide:build
+
+[docs](./docs) 폴더에 가이드문서의 정적파일을 생성합니다.
+
 ## Config
 
 환경변수와 관련된 설정파일은 모두 [configs](./configs) 경로에 있습니다.
