@@ -1,12 +1,14 @@
 import { addDecorator, addParameters } from '@storybook/react'
-import { withInfo, setDefaults } from '@storybook/addon-info'
+import { withInfo, setDefaults as setInfoDefaults } from '@storybook/addon-info'
+import { addReadme } from 'storybook-readme'
 
-setDefaults({
+setInfoDefaults({
     inline: true,
     header: false,
 })
 
 addDecorator(withInfo)
+addDecorator(addReadme)
 
 addParameters({
     options: {
