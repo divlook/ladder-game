@@ -119,17 +119,15 @@ cp configs/deploy.env.example configs/deploy.env
 
 ### Deploy Config Property
 
-- deploy.env
-
-    | name | description | example |
-    | - | - | - |
-    | LADDER_DEPLOY_SSH_KEY | 원격연결에 사용할 ssh key | |
-    | LADDER_DEPLOY_USER | 원격연결에 사용할 username | |
-    | LADDER_DEPLOY_HOST | host | |
-    | LADDER_DEPLOY_PATH | 배포할 서버상 경로 (반드시 절대경로로 입력) | /var/www/ladder-game |
-    | LADDER_DEPLOY_REMOTE | git remote name | origin |
-    | LADDER_DEPLOY_BRANCH | git branch name | master |
-    | LADDER_DEPLOY_REPO | 서버에서 pull 받을 build용 git 주소 | git@github.com:divlook/ladder-game-build.git |
+| name | description | example |
+| - | - | - |
+| LADDER_DEPLOY_SSH_KEY | 원격연결에 사용할 ssh key | |
+| LADDER_DEPLOY_USER | 원격연결에 사용할 username | |
+| LADDER_DEPLOY_HOST | host | |
+| LADDER_DEPLOY_PATH | 배포할 서버상 경로 (반드시 절대경로로 입력) | /var/www/ladder-game |
+| LADDER_DEPLOY_REMOTE | git remote name | origin |
+| LADDER_DEPLOY_BRANCH | git branch name | master |
+| LADDER_DEPLOY_REPO | 서버에서 pull 받을 build용 git 주소 | git@github.com:divlook/ladder-game-build.git |
 
 ### 첫번째 배포
 
