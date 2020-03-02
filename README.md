@@ -50,6 +50,10 @@
 
   PM2는 NodeJs로 만들어진 daemon process manager입니다. PM2를 사용하면 NodeJs 서버를 데몬으로 실행하고 관리할 수 있습니다. 플러그인을 추가하면 원격기능과 배포기능도 있어서 매우 유용합니다.
 
+- cypress
+
+- storybook
+
 ## Wiki
 
 더 자세한 설명은 [Wiki][wiki]를 참고해주세요.
