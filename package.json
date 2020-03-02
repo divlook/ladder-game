@@ -16,14 +16,19 @@
         "deploy:sub": "npm run env:prod npm run build && npm run env:prod npm run publish sub && npm run env:prod npm run remote sub",
         "test": "cypress open",
         "env:prod": "cross-env NODE_ENV=production",
-        "export": "node scripts/export.js"
+        "export": "node scripts/export.js",
+        "guide": "start-storybook",
+        "guide:build": "build-storybook -o docs"
     },
     "keywords": [],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
     "license": "MIT",
     "devDependencies": {
+        "@babel/core": "^7.8.6",
         "@babel/plugin-proposal-class-properties": "^7.8.3",
         "@babel/plugin-proposal-do-expressions": "^7.8.3",
+        "@storybook/addon-info": "^5.3.14",
+        "@storybook/react": "^5.3.14",
         "@types/logrocket-react": "^3.0.0",
         "@types/node": "^13.7.0",
         "@types/react": "^16.9.19",
@@ -31,6 +36,7 @@
         "@typescript-eslint/eslint-plugin": "^2.19.0",
         "@typescript-eslint/parser": "^2.19.0",
         "@zeit/next-source-maps": "0.0.3",
+        "babel-loader": "^8.0.6",
         "babel-plugin-add-react-displayname": "0.0.5",
         "chalk": "^3.0.0",
         "cypress": "^4.0.2",
@@ -42,6 +48,9 @@
         "eslint-plugin-react": "^7.18.3",
         "gh-pages": "^2.2.0",
         "prettier": "1.19.1",
+        "react-docgen-typescript-loader": "^3.6.0",
+        "storybook-readme": "^5.0.8",
+        "ts-loader": "^6.2.1",
         "typescript": "^3.7.5"
     },
     "dependencies": {
