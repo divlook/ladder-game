@@ -50,9 +50,13 @@
 
   PM2는 NodeJs로 만들어진 daemon process manager입니다. PM2를 사용하면 NodeJs 서버를 데몬으로 실행하고 관리할 수 있습니다. 플러그인을 추가하면 원격기능과 배포기능도 있어서 매우 유용합니다.
 
-- cypress
+- [Cypress](https://www.cypress.io/)
 
-- storybook
+  Cypress는 E2E 테스트를 위한 도구입니다. E2E 테스트는 코드가 아닌 사용자의 행동에 따른 시나리오대로 프로그램이 동작하는지 확인하는 테스트입니다.
+
+- [Storybook](https://storybook.js.org/)
+
+  Storybook은 UI Component를 독립적으로 개발하고 테스트하기 편리한 개발환경을 만들어주는 도구입니다. 컴포넌트 기반 개발(component-based development, CBD)을 할때 유용합니다.
 
 ## Wiki
 
