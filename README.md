@@ -4,6 +4,8 @@
 
 # README
 
+![](./public/img/thumbnail_large.png)
+
 - [README](#readme)
   - [소개](#%ec%86%8c%ea%b0%9c)
   - [기술 스택](#%ea%b8%b0%ec%88%a0-%ec%8a%a4%ed%83%9d)
