@@ -46,6 +46,8 @@ function doPublish(serverName) {
         const publishBasePath = '.'
         const publishSrc = [
             'build/**/*',
+            'public/**/*',
+            'dist/**/*',
             'configs/**/*',
             '!configs/**/*.local',
             'lib/**/*.js',
