@@ -22,7 +22,8 @@ function run() {
                 choices: serverNames,
             })
 
-            prompt.run()
+            prompt
+                .run()
                 .then(answer => {
                     if (answer) doPublish(answer)
                 })
@@ -42,7 +43,6 @@ function doPublish(serverName) {
         const LADDER_DEPLOY_BRANCH = env.LADDER_DEPLOY_BRANCH || 'master'
         const LADDER_DEPLOY_REPO = env.LADDER_DEPLOY_REPO
         const commitID = getCommitID()
-        const tagName = getTagName(commitID)
         const publishBasePath = '.'
         const publishSrc = [
             'build/**/*',
@@ -56,23 +56,19 @@ function doPublish(serverName) {
             'package.json',
             'pm2.config.js',
         ]
+        const publishOptions = {
+            src: publishSrc,
+            remote: LADDER_DEPLOY_REMOTE,
+            branch: LADDER_DEPLOY_BRANCH,
+            repo: LADDER_DEPLOY_REPO,
+            message: commitID,
+        }
 
         ghpages.clean()
-        ghpages.publish(
-            publishBasePath,
-            {
-                src: publishSrc,
-                remote: LADDER_DEPLOY_REMOTE,
-                branch: LADDER_DEPLOY_BRANCH,
-                repo: LADDER_DEPLOY_REPO,
-                tag: tagName,
-                message: commitID,
-            },
-            (error) => {
-                publishCallback(error, serverName)
-                resolve(error)
-            }
-        )
+        ghpages.publish(publishBasePath, publishOptions, error => {
+            publishCallback(error, serverName, publishBasePath, publishOptions)
+            resolve(error)
+        })
     })
 }
 
@@ -86,19 +82,42 @@ function getCommitID() {
 
 function getTagName(commitID) {
     try {
-        return execSync(`git tag --contains ${commitID}`).toString()
+        return execSync(`git tag --contains ${commitID ? commitID : ''}`)
+            .toString()
+            .split(/\n/)[0]
     } catch {
         return undefined
     }
 }
 
-function publishCallback(error, serverName) {
+async function publishCallback(error, serverName, publishBasePath, publishOptions) {
     console.group(`${chalk.cyan('ghpages')} : ${serverName}`)
     if (error) {
         console.log(chalk.redBright('Fail to publish'))
         console.log(chalk.red(error))
     } else {
-        console.log(chalk.green('Publish successfully'))
+        const tagName = getTagName()
+        let successMsg = 'Success'
+
+        if (tagName) {
+            await new Promise(resolve => {
+                ghpages.publish(
+                    publishBasePath,
+                    {
+                        ...publishOptions,
+                        tag: tagName,
+                        silent: true,
+                    },
+                    error => {
+                        if (!error) {
+                            successMsg += ` ${tagName}`
+                        }
+                        resolve()
+                    }
+                )
+            })
+        }
+        console.log(chalk.green(successMsg))
     }
     console.groupEnd()
 }
