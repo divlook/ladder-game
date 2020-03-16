@@ -86,7 +86,7 @@ function getCommitID() {
 
 function getTagName(commitID) {
     try {
-        return execSync(`git tag --contains ${commitID}`).toString()
+        return execSync(`git tag --contains ${commitID}`).toString().split(/\n/)[0]
     } catch {
         return undefined
     }
