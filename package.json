@@ -20,7 +20,7 @@
         "guide": "start-storybook",
         "guide:build": "build-storybook -o docs"
     },
-    "keywords": [],
+    "keywords": ["Ladder Game", "사다리 게임"],
     "author": "uihyeon.cha<uihyeon.cha@gmail.com>",
     "license": "MIT",
     "devDependencies": {
