@@ -53,6 +53,9 @@ const LadderGame: React.FC<InitialState> = props => {
 
             dispatch(actions.createMapData(ladderQty))
         },
+        autoConnect() {
+            dispatch(actions.autoConnect(props.ladderQty))
+        },
         calcMidLineStyle: useCallback(
             (startPoint: MapData, endPoint: MapData) => {
                 const toTheSameTop = (startPoint?.el?.offsetTop || 0) === (endPoint?.el?.offsetTop || 0)
@@ -179,6 +182,7 @@ const LadderGame: React.FC<InitialState> = props => {
 
     useEffect(() => {
         methods.paintLadder()
+        methods.autoConnect()
         window.addEventListener('resize', methods.handleWindowResize)
 
         return () => {

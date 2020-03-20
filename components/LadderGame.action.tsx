@@ -71,3 +71,10 @@ export const reset = () => {
         payload: {},
     }
 }
+
+export const autoConnect = (ladderQty: number) => {
+    return {
+        type: types.AUTO_CONNECT,
+        payload: { ladderQty },
+    }
+}

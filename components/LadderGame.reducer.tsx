@@ -1,5 +1,12 @@
 import { State, MapData, MidLine } from '~/components/LadderGame.interface'
 import * as types from '~/components/LadderGame.type'
+import * as actions from '~/components/LadderGame.action'
+
+const useDispatch = (reducer, initialState) => {
+    return (action) => {
+        Object.assign(initialState, reducer(initialState, action))
+    }
+}
 
 export const defaultOption = {
     mapMinHeight: 300,
@@ -203,6 +210,66 @@ export const LadderGameReducer = (state: State, action: {type: string, payload?:
 
             return {
                 ...state,
+            }
+        }
+
+        case types.AUTO_CONNECT: {
+            const nextState = { ...state }
+            const ladderQty = action.payload.ladderQty
+            const dispatch = useDispatch(LadderGameReducer, nextState)
+            const random = function(percent = 50) {
+                return Math.round(Math.random() * 100) <= percent
+            }
+
+            const startIndexs = Array(ladderQty)
+                .fill(null)
+                .map((val, key) => key)
+                .filter(() => random(80))
+
+            if (startIndexs.length === 0) {
+                startIndexs.push(Math.floor(Math.random() * Math.pow(10, ladderQty.toString().length) % ladderQty))
+            }
+
+            startIndexs.forEach(index => {
+                const getNextXIndex = function(index: number) {
+                    if (index === 0) return 1
+                    if (index === ladderQty - 1) return index - 1
+                    return index + (random(50) ? 1 : -1)
+                }
+
+                const getNextYIndex = function(index: number) {
+                    const sign = (random(80) || index > 1) ? 1 : -1
+                    const distance = Math.floor(Math.random() * 10 % 3) * 2
+                    const nextIndex = index + distance * sign
+
+                    if (nextIndex <= 1) {
+                        return index + distance
+                    }
+
+                    return nextIndex
+                }
+
+                const connect = function(xIndex, yIndex = 1) {
+                    const currentYIndex = getNextYIndex(yIndex)
+                    const nextXIndex = getNextXIndex(xIndex)
+                    const nextYIndex = getNextYIndex(currentYIndex)
+                    const startPoint = nextState.mapData[xIndex][currentYIndex]
+                    const endPoint = nextState.mapData[nextXIndex][nextYIndex]
+
+                    if (startPoint && !startPoint.isLinked && endPoint && !endPoint.isLinked) {
+                        dispatch(actions.startGeneratingMidline(startPoint))
+                        dispatch(actions.finishGeneratingMidline(endPoint))
+                    }
+
+                    if (endPoint) {
+                        connect(nextXIndex, nextYIndex)
+                    }
+                }
+                connect(index)
+            })
+
+            return {
+                ...nextState,
             }
         }
 
