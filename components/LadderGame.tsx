@@ -52,6 +52,7 @@ const LadderGame: React.FC<InitialState> = props => {
             const { ladderQty } = props
 
             dispatch(actions.createMapData(ladderQty))
+            dispatch(actions.autoConnect(props.ladderQty))
         },
         calcMidLineStyle: useCallback(
             (startPoint: MapData, endPoint: MapData) => {
@@ -171,6 +172,7 @@ const LadderGame: React.FC<InitialState> = props => {
         },
         reGame() {
             dispatch(actions.reGame())
+            dispatch(actions.autoConnect(props.ladderQty))
         },
         handleWindowResize: throttling(() => {
             methods.calcMapSize()
