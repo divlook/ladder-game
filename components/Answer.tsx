@@ -8,6 +8,8 @@ export interface Props {
     store: InitialState
 }
 
+export type AnswerItem = string | number
+
 export const useStyles = makeStyles(theme => ({
     answerContainer: {
         display: 'inline-flex',
@@ -19,37 +21,47 @@ export const useStyles = makeStyles(theme => ({
     },
 }))
 
-const Answers: React.FC<Props> = ({ currentStep, store }) => {
-    const classes = useStyles()
+function getList(props: Props) {
+    const list: AnswerItem[] = []
+    const { ladderQty, players, rewards } = props.store
 
-    const list: (string|number)[] = []
-
-    switch (currentStep) {
+    switch (props.currentStep) {
         case 0: {
-            if (store.ladderQty) {
-                list.push(store.ladderQty)
+            if (ladderQty) {
+                list.push(ladderQty)
             }
             break
         }
         case 1: {
-            store.players.forEach((row) => {
+            players.some((row) => {
                 if (row) {
                     list.push(row)
                 }
+
+                return list.length === ladderQty
             })
             break
         }
         case 2: {
-            store.rewards.forEach((row) => {
+            rewards.some((row) => {
                 if (row) {
                     list.push(row)
                 }
+
+                return list.length === ladderQty
             })
             break
         }
         default:
             break
     }
+
+    return list
+}
+
+const Answers: React.FC<Props> = (props) => {
+    const classes = useStyles()
+    const list = getList(props)
 
     return (
         <span className={classes.answerContainer}>
