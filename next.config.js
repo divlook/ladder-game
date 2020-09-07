@@ -52,8 +52,9 @@ module.exports = phase => {
          * @see https://nextjs.org/docs/api-reference/next.config.js/exportPathMap#adding-a-trailing-slash
          * @example
          * exportTrailingSlash ? "/about/index.html" : "/about.html"
+         * @description next v9.5 부터 trailingSlash로 변경된다고 함
          */
-        exportTrailingSlash: true,
+        trailingSlash: true,
 
         /**
          * @see https://nextjs.org/docs/api-reference/next.config.js/custom-webpack-config

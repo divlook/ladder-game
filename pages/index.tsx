@@ -14,6 +14,7 @@ import { makeStyles } from '@material-ui/core'
 import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
 import LadderGame from '~/components/LadderGame'
+import Answer from '~/components/Answer'
 
 export const useStyles = makeStyles(theme => ({
     root: {
@@ -95,7 +96,9 @@ const IndexPage: NextPage = () => {
 
                         return (
                             <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
+                                <StepLabel>
+                                    {label} <Answer currentStep={currentStep} store={store} />
+                                </StepLabel>
                                 <StepContent>
                                     {(() => {
                                         switch (currentStep) {

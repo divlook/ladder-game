@@ -6,7 +6,7 @@ export const initialState: types.InitialState = {
     rewards: [],
 }
 
-export default (state: types.InitialState, action: types.Action) => {
+const reducer = (state: types.InitialState, action: types.Action) => {
     switch (action.type) {
         case types.CHANGE_REWARD: {
             const { index, rewardName } = action.payload
@@ -49,3 +49,5 @@ export default (state: types.InitialState, action: types.Action) => {
         }
     }
 }
+
+export default reducer
