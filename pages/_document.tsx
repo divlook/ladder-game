@@ -29,6 +29,9 @@ class MyDocument extends Document {
         return (
             <Html lang="ko">
                 <Head>
+                    <meta charSet="UTF-8" />
+                    <meta httpEquiv="x-ua-compatible" content="IE=edge" />
+
                     <GoogleAnalytics />
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
 
