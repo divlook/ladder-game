@@ -67,7 +67,7 @@
         "logrocket": "^1.0.6",
         "logrocket-react": "^4.0.1",
         "minimist": "^1.2.5",
-        "next": "^9.5.3",
+        "next": "^10.0.1",
         "react": "^16.13.0",
         "react-app-polyfill": "^1.0.6",
         "react-dom": "^16.13.0"
