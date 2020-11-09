@@ -31,6 +31,7 @@ class MyDocument extends Document {
                 <Head>
                     <meta charSet="UTF-8" />
                     <meta httpEquiv="x-ua-compatible" content="IE=edge" />
+                    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
 
                     <GoogleAnalytics />
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
