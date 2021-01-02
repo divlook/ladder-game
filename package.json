@@ -17,6 +17,7 @@
         "test": "cypress open",
         "env:prod": "cross-env NODE_ENV=production",
         "export": "node scripts/export.js",
+        "export:next": "next export",
         "guide": "start-storybook",
         "guide:build": "build-storybook -o docs"
     },
