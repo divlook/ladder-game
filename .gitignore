@@ -34,3 +34,4 @@ yarn-error.log*
 # NextJs build 폴더
 .next
 build
+out
