@@ -1,4 +1,4 @@
-import React, { FC, Fragment, useCallback } from 'react'
+import React, { FC, useCallback } from 'react'
 import { GA_ID, USING_GA } from '~/lib/constants'
 
 let definedDataLayer = false
@@ -50,12 +50,12 @@ export const GoogleAnalytics: FC = () => {
 
     if (USING_GA) {
         return (
-            <Fragment>
+            <>
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
                 <script dangerouslySetInnerHTML={setGoogleTags()} />
-            </Fragment>
+            </>
         )
     }
 
-    return null
+    return  null
 }

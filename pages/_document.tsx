@@ -2,6 +2,7 @@ import React from 'react'
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheets } from '@material-ui/core'
 import * as Sentry from '~/plugins/sentry'
+import { GoogleAnalytics } from '~/plugins/google-analytics'
 
 process.on('unhandledRejection', err => void Sentry.captureException(err))
 process.on('uncaughtException', err => void Sentry.captureException(err))
@@ -27,7 +28,9 @@ class MyDocument extends Document {
     render() {
         return (
             <Html lang="ko">
-                <Head />
+                <Head>
+                    <GoogleAnalytics />
+                </Head>
                 <body>
                     <Main />
                     <NextScript />

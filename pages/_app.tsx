@@ -5,7 +5,7 @@ import 'react-app-polyfill/ie11'
 import 'react-app-polyfill/stable'
 import * as Sentry from '~/plugins/sentry'
 import { initLogRocket } from '~/plugins/logrocket'
-import { trackPageView, GoogleAnalytics } from '~/plugins/google-analytics'
+import { trackPageView } from '~/plugins/google-analytics'
 
 Sentry.init()
 initLogRocket().withSentry(Sentry)
@@ -41,7 +41,6 @@ class MyApp extends App {
                     <meta httpEquiv="x-ua-compatible" content="IE=edge" />
                     <meta name="viewport" content="initial-scale=1.0, width=device-width" />
 
-                    <GoogleAnalytics />
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
 
                     <meta name="keywords" content="사다리게임, ladder game, 사다리타기" />
