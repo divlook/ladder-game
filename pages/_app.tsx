@@ -51,6 +51,8 @@ class MyApp extends App {
                     <meta property="og:description" content="간단한 사다리타기 게임입니다." />
                     <meta property="og:image" content="https://ladder.divlook.dev/img/thumbnail_small.png" />
                     <meta property="og:url" content="https://ladder.divlook.dev/" />
+
+                    <meta name="naver-site-verification" content="d42b73fa5171d7d617e0ad9bf91f58351dc5177a" />
                 </Head>
                 <Component {...pageProps} />
             </>
