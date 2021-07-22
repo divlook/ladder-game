@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install
-        run: npm i
+        run: yarn
 
       - name: Build
         if: success()
@@ -24,11 +24,11 @@ jobs:
           LADDER_PLUGIN_SENTRY_DSN: ${{ secrets.LADDER_PLUGIN_SENTRY_DSN }}
           LADDER_PLUGIN_LOGROCKET_ID: ${{ secrets.LADDER_PLUGIN_LOGROCKET_ID }}
           LADDER_PLUGIN_GA_ID: ${{ secrets.LADDER_PLUGIN_GA_ID }}
-        run: NODE_ENV="$NODE_ENV" LADDER_PLUGIN_SENTRY_DSN="$LADDER_PLUGIN_SENTRY_DSN" LADDER_PLUGIN_LOGROCKET_ID="$LADDER_PLUGIN_LOGROCKET_ID" LADDER_PLUGIN_GA_ID="$LADDER_PLUGIN_GA_ID" npm run build
+        run: NODE_ENV="$NODE_ENV" LADDER_PLUGIN_SENTRY_DSN="$LADDER_PLUGIN_SENTRY_DSN" LADDER_PLUGIN_LOGROCKET_ID="$LADDER_PLUGIN_LOGROCKET_ID" LADDER_PLUGIN_GA_ID="$LADDER_PLUGIN_GA_ID" yarn run build
 
       - name: Export
         if: success()
-        run: npm run export:next
+        run: yarn run export:next
 
       - name: Add No Jekyll
         if: success()
