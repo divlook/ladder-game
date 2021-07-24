@@ -1,7 +1,6 @@
 import React, { useState, useReducer, useEffect, useRef } from 'react'
 import { NextPage } from 'next'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import Typography from '@material-ui/core/Typography'
 import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
@@ -262,11 +261,10 @@ const IndexPage: NextPage = () => {
                                     <Typography variant="body1" align="center" className={classes.tourTitle}>
                                         사다리를 그려주세요.
                                     </Typography>
-                                    <Image src="/img/good-use.gif" width={480} height={360} />
+                                    <img src="./img/good-use.gif" width="100%" />
                                 </>
                             )
                         },
-                        position: 'right',
                     },
                     {
                         selector: '.guide-2',
