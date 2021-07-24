@@ -268,7 +268,7 @@ const LadderGame: React.FC<InitialState> = props => {
                                 </Grid>
                             </div>
 
-                            <Grid container spacing={2} className={classes.buttons} justify="center">
+                            <Grid container spacing={2} className={classes.buttons} justifyContent="center">
                                 <Grid item>
                                     {state.gameStep === 0 && (
                                         <Button
