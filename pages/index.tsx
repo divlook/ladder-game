@@ -265,6 +265,7 @@ const IndexPage: NextPage = () => {
                                 </>
                             )
                         },
+                        position: 'center',
                     },
                     {
                         selector: '.guide-2',
@@ -302,6 +303,12 @@ const IndexPage: NextPage = () => {
                 onRequestClose={() => {
                     setIsTourOpen(false)
                     sessionStorage.setItem('tour:complete', Date.now().toString())
+                }}
+                onAfterOpen={() => {
+                    document.body.style.setProperty('overflow-y', 'hidden')
+                }}
+                onBeforeClose={() => {
+                    document.body.style.removeProperty('overflow-y')
                 }}
             />
         </DefaultLayout>
