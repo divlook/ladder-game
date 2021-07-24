@@ -13,7 +13,9 @@ const reducer = (state: types.InitialState, action: types.Action) => {
 
             state.rewards.splice(index, 1, rewardName)
 
-            return state
+            return {
+                ...state,
+            }
         }
 
         case types.CHANGE_LADDER_QTY: {
@@ -29,7 +31,9 @@ const reducer = (state: types.InitialState, action: types.Action) => {
 
             state.players.splice(index, 1, playerName)
 
-            return state
+            return {
+                ...state,
+            }
         }
 
         case types.RESET_ALL: {
@@ -41,7 +45,9 @@ const reducer = (state: types.InitialState, action: types.Action) => {
                 }
             }
 
-            return state
+            return {
+                ...state,
+            }
         }
 
         default: {

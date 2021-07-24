@@ -1,20 +1,24 @@
 import React, { useState, useReducer, useEffect, useRef } from 'react'
 import { NextPage } from 'next'
+import dynamic from 'next/dynamic'
 import Typography from '@material-ui/core/Typography'
 import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
 import StepContent from '@material-ui/core/StepContent'
-import DefaultLayout from '~/layouts/DefaultLayout'
 import Button from '@material-ui/core/Button'
 import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
 import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core'
+import { log } from '~/lib/logger'
+import DefaultLayout from '~/layouts/DefaultLayout'
 import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
 import LadderGame from '~/components/LadderGame'
 import Answer from '~/components/Answer'
+
+const Tour = dynamic(() => import('reactour'), { ssr: false })
 
 export const useStyles = makeStyles(theme => ({
     root: {
@@ -39,14 +43,28 @@ export const useStyles = makeStyles(theme => ({
     resetContainer: {
         padding: theme.spacing(3),
     },
+    tourTitle: {
+        marginBottom: theme.spacing(2),
+    },
+    tourBtns: {
+        display: 'flex',
+        justifyContent: 'center',
+    },
+    tourBtn: {
+        marginRight: theme.spacing(2),
+        '&:last-child': {
+            marginRight: theme.spacing(0),
+        },
+    },
 }))
 
 const IndexPage: NextPage = () => {
     const classes = useStyles()
+    const formRef = useRef<HTMLFormElement>(null)
     const steps = ['몇 개의 사다리가 필요하신가요?', '이름을 입력해주세요.', '보상을 입력해주세요.']
     const [activeStep, setActiveStep] = useState(0)
+    const [isTourOpen, setIsTourOpen] = useState(false)
     const [store, dispatch] = useReducer(IndexReducer, initialState)
-    const formRef = useRef<HTMLFormElement>(null)
 
     const handleSubmit = e => {
         e.preventDefault()
@@ -80,7 +98,7 @@ const IndexPage: NextPage = () => {
     }
 
     useEffect(() => {
-        console.log(store)
+        log(store)
     }, [store])
 
     return (
@@ -181,7 +199,14 @@ const IndexPage: NextPage = () => {
             {activeStep === steps.length && (
                 <Paper square elevation={0} className={classes.resetContainer}>
                     <Box>
-                        <LadderGame {...store} />
+                        <LadderGame
+                            {...store}
+                            onLoadMap={() => {
+                                if (!sessionStorage.getItem('tour:complete')) {
+                                    setIsTourOpen(true)
+                                }
+                            }}
+                        />
                     </Box>
                     <Box>
                         <Button disabled={activeStep === 0} onClick={handleBack} className={classes.button}>
@@ -193,6 +218,92 @@ const IndexPage: NextPage = () => {
                     </Box>
                 </Paper>
             )}
+
+            <Tour
+                steps={[
+                    {
+                        content: function Content({ close, step, goTo }) {
+                            return (
+                                <>
+                                    <Typography variant="body1" align="center" className={classes.tourTitle}>
+                                        튜토리얼을 진행하시겠습니까?
+                                    </Typography>
+                                    <Box className={classes.tourBtns}>
+                                        <Button
+                                            className={classes.tourBtn}
+                                            variant="contained"
+                                            onClick={() => {
+                                                close()
+                                            }}
+                                        >
+                                            아니요
+                                        </Button>
+                                        <Button
+                                            className={classes.tourBtn}
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => {
+                                                goTo(step)
+                                            }}
+                                        >
+                                            네
+                                        </Button>
+                                    </Box>
+                                </>
+                            )
+                        },
+                    },
+                    {
+                        selector: '.guide-1',
+                        content: function Content() {
+                            return (
+                                <>
+                                    <Typography variant="body1" align="center" className={classes.tourTitle}>
+                                        사다리를 그려주세요.
+                                    </Typography>
+                                    <img src="./img/good-use.gif" width="100%" />
+                                </>
+                            )
+                        },
+                    },
+                    {
+                        selector: '.guide-2',
+                        content: '"준비 완료"를 클릭하세요.',
+                    },
+                    {
+                        selector: '.guide-3',
+                        content: function Content({ close }) {
+                            return (
+                                <>
+                                    <Typography variant="body1" align="center" className={classes.tourTitle}>
+                                        이름을 클릭하면 게임이 시작됩니다.
+                                    </Typography>
+                                    <Box className={classes.tourBtns}>
+                                        <Button
+                                            className={classes.tourBtn}
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => {
+                                                close()
+                                            }}
+                                        >
+                                            완료
+                                        </Button>
+                                    </Box>
+                                </>
+                            )
+                        },
+                    },
+                ]}
+                showCloseButton={false}
+                disableInteraction={true}
+                closeWithMask={false}
+                isOpen={isTourOpen}
+                onRequestClose={() => {
+                    setIsTourOpen(false)
+                    sessionStorage.setItem('tour:complete', Date.now().toString())
+                }}
+            />
         </DefaultLayout>
     )
 }

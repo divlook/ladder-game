@@ -2,11 +2,12 @@ import React, { useRef, useReducer, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
+import { throttling } from '~/lib/utils'
+import { log } from '~/lib/logger'
 import { MapData } from '~/components/LadderGame.interface'
 import { useStyles } from '~/components/LadderGame.style'
 import { LadderGameReducer, LadderGameInitialState, LadderGameInitializer } from '~/components/LadderGame.reducer'
 import * as actions from '~/components/LadderGame.action'
-import { throttling } from '~/lib/utils'
 import ResultCanvas from '~/components/ResultCanvas'
 
 /*
@@ -33,7 +34,11 @@ TODO:
 
 */
 
-const LadderGame: React.FC<InitialState> = props => {
+export interface Props extends InitialState {
+    onLoadMap?: () => void
+}
+
+const LadderGame: React.FC<Props> = props => {
     const [state, dispatch] = useReducer(LadderGameReducer, LadderGameInitialState, LadderGameInitializer)
     const classes = useStyles(state)()
 
@@ -49,9 +54,7 @@ const LadderGame: React.FC<InitialState> = props => {
             }
         },
         paintLadder() {
-            const { ladderQty } = props
-
-            dispatch(actions.createMapData(ladderQty))
+            dispatch(actions.createMapData(props.ladderQty))
             dispatch(actions.autoConnect(props.ladderQty))
         },
         calcMidLineStyle: useCallback(
@@ -119,9 +122,10 @@ const LadderGame: React.FC<InitialState> = props => {
         ),
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
+
             console.group('item')
-            console.log('x', x, 'y', y)
-            console.log(state.mapData[x][y])
+            log('x', x, 'y', y)
+            log(state.mapData[x][y])
             console.groupEnd()
 
             // handle만 조작 가능하다
@@ -189,7 +193,9 @@ const LadderGame: React.FC<InitialState> = props => {
     }, [])
 
     useEffect(() => {
-        state.hasMapData && methods.calcMapSize()
+        if (state.hasMapData && methods.calcMapSize()) {
+            props.onLoadMap?.()
+        }
     }, [state.hasMapData])
 
     return (
@@ -200,14 +206,16 @@ const LadderGame: React.FC<InitialState> = props => {
                 } else if (state.hasMapData) {
                     return (
                         <React.Fragment>
-                            <div className={classes.ladders}>
+                            <div className={clsx(classes.ladders, 'guide-1')}>
                                 <Grid ref={mapRef} className={classes.ladderContainer} container spacing={2}>
                                     {state.mapData.map((xVal, xIndex) => {
                                         return (
                                             <Grid key={xIndex} item>
                                                 <Box className={classes.ladderItemHeader}>
                                                     <Button
-                                                        className={classes.buttonItem}
+                                                        className={clsx(classes.buttonItem, {
+                                                            'guide-3': xIndex === 0,
+                                                        })}
                                                         variant="contained"
                                                         color="primary"
                                                         onClick={methods.playGame(xIndex)}
@@ -268,11 +276,11 @@ const LadderGame: React.FC<InitialState> = props => {
                                 </Grid>
                             </div>
 
-                            <Grid container spacing={2} className={classes.buttons} justify="center">
+                            <Grid container spacing={2} className={classes.buttons} justifyContent="center">
                                 <Grid item>
                                     {state.gameStep === 0 && (
                                         <Button
-                                            className={classes.buttonItem}
+                                            className={clsx(classes.buttonItem, 'guide-2')}
                                             variant="contained"
                                             color="secondary"
                                             size="large"
