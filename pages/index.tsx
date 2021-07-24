@@ -304,12 +304,6 @@ const IndexPage: NextPage = () => {
                     setIsTourOpen(false)
                     sessionStorage.setItem('tour:complete', Date.now().toString())
                 }}
-                onAfterOpen={() => {
-                    document.body.style.setProperty('overflow-y', 'hidden')
-                }}
-                onBeforeClose={() => {
-                    document.body.style.removeProperty('overflow-y')
-                }}
             />
         </DefaultLayout>
     )
