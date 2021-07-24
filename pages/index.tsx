@@ -5,12 +5,13 @@ import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
 import StepLabel from '@material-ui/core/StepLabel'
 import StepContent from '@material-ui/core/StepContent'
-import DefaultLayout from '~/layouts/DefaultLayout'
 import Button from '@material-ui/core/Button'
 import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
 import Box from '@material-ui/core/Box'
 import { makeStyles } from '@material-ui/core'
+import { log } from '~/lib/logger'
+import DefaultLayout from '~/layouts/DefaultLayout'
 import IndexReducer, { initialState } from '~/reducers/index.reducer'
 import * as IndexAction from '~/reducers/index.action'
 import LadderGame from '~/components/LadderGame'
@@ -80,7 +81,7 @@ const IndexPage: NextPage = () => {
     }
 
     useEffect(() => {
-        console.log(store)
+        log(store)
     }, [store])
 
     return (

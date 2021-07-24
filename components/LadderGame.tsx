@@ -2,11 +2,12 @@ import React, { useRef, useReducer, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
 import { Typography, Box, Grid, Button } from '@material-ui/core'
 import { InitialState } from '~/reducers/index.type'
+import { throttling } from '~/lib/utils'
+import { log } from '~/lib/logger'
 import { MapData } from '~/components/LadderGame.interface'
 import { useStyles } from '~/components/LadderGame.style'
 import { LadderGameReducer, LadderGameInitialState, LadderGameInitializer } from '~/components/LadderGame.reducer'
 import * as actions from '~/components/LadderGame.action'
-import { throttling } from '~/lib/utils'
 import ResultCanvas from '~/components/ResultCanvas'
 
 /*
@@ -119,9 +120,10 @@ const LadderGame: React.FC<InitialState> = props => {
         ),
         connectMidLine: (x: number, y: number) => e => {
             e.persist()
+
             console.group('item')
-            console.log('x', x, 'y', y)
-            console.log(state.mapData[x][y])
+            log('x', x, 'y', y)
+            log(state.mapData[x][y])
             console.groupEnd()
 
             // handle만 조작 가능하다
