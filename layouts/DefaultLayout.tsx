@@ -76,9 +76,8 @@ const Layout: React.FC<Props> = ({ children, title = 'Ladder Game', width = 720 
                     {'Copyright © '}
                     <Link color="inherit" href="https://github.com/divlook/">
                         divlook
-                    </Link>{' '}
-                    {new Date().getFullYear()}
-                    {'.'}
+                    </Link>
+                    {' 2020.'}
                 </Typography>
             </footer>
         </React.Fragment>
