@@ -68,7 +68,7 @@
         "enquirer": "^2.3.4",
         "logrocket": "^1.0.6",
         "logrocket-react": "^4.0.1",
-        "minimist": "^1.2.5",
+        "minimist": "^1.2.6",
         "next": "^10.0.1",
         "react": "^16.13.0",
         "react-app-polyfill": "^1.0.6",
